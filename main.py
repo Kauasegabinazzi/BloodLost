@@ -40,13 +40,23 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             exit() # finaliza o pygame
+        # if event.type == pygame.MOUSEMOTION:
+        #     if player_rect.collidepoint(event.pos) : print('teste')
 
     screen.blit(backgroud_surface,(0,0))
     screen.blit(text_surface,(400,70))
-    screen.blit(hero_surface, player_rect)
     bat_rect.x -= 4
     if bat_rect.right <= 0 : bat_rect.left = 1100
     screen.blit(bat_surface,bat_rect)
+    screen.blit(hero_surface, player_rect)
+    
+    # if player_rect.colliderect(bat_rect):
+    #     print('collision')
+
+    # mouse_pos = pygame.mouse.get_pos()
+    # if player_rect.collidepoint(mouse_pos):
+    #     print(pygame.mouse.get_pressed())
+
 
     pygame.display.update()
     clock.tick(60) #diz para não rodar acima de 60 fps
