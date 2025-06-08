@@ -22,41 +22,54 @@ newHero_size = (heroOriginal_width * scaleHero_factor, heroOriginal_height * sca
 newbat_size = (batOriginal_width * scaleBat_factor, batOriginal_height * scaleBat_factor)
 
 backgroud_surface = pygame.transform.scale(backgroudOriginal_image, new_size)
-hero_surface = pygame.transform.scale(heroOriginal_surface, newHero_size)
-bat_surface = pygame.transform.scale(batOriginal_surface, newbat_size)
 
 screen = pygame.display.set_mode(new_size) #cria uma janela do tamanho e largura desejaveis
 pygame.display.set_caption('BloodLost')
 clock = pygame.time.Clock()
 test_font = pygame.font.Font('fonts\\Pixeltype.ttf', 50)
-text_surface = test_font.render('Game Over', False, 'White')
 
+score_surf = test_font.render('My Game', False, (255, 255, 255))
+score_rect = score_surf.get_rect(center = (500, 50))
 
-player_rect = hero_surface.get_rect(topleft = (300,245))
+bat_surface = pygame.transform.scale(batOriginal_surface, newbat_size)
 bat_rect = bat_surface.get_rect(topleft = (700,255))
+
+hero_surface = pygame.transform.scale(heroOriginal_surface, newHero_size)
+player_rect = hero_surface.get_rect(topleft = (300,245))
+player_gravity = 0
+
+
 
 while True: 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit() # finaliza o pygame
-        # if event.type == pygame.MOUSEMOTION:
-        #     if player_rect.collidepoint(event.pos) : print('teste')
+
+        if event.type == pygame.MOUSEBUTTONDOWN and player_rect.bottom >= 310:
+            if player_rect.collidepoint(event.pos) : 
+                 player_gravity = -15
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and player_rect.bottom >= 310 :
+                player_gravity = -15
 
     screen.blit(backgroud_surface,(0,0))
-    screen.blit(text_surface,(400,70))
+    
+    pygame.draw.rect(screen,(148, 0, 211), score_rect, border_radius=5)
+    pygame.draw.rect(screen, (255, 20, 147), score_rect, width=2, border_radius=5)
+    
+    screen.blit(score_surf,score_rect)
+
     bat_rect.x -= 4
     if bat_rect.right <= 0 : bat_rect.left = 1100
+
     screen.blit(bat_surface,bat_rect)
+
+    player_gravity += 1
+    player_rect.y += player_gravity
+    if player_rect.bottom >= 310: player_rect.bottom = 310
     screen.blit(hero_surface, player_rect)
     
-    # if player_rect.colliderect(bat_rect):
-    #     print('collision')
-
-    # mouse_pos = pygame.mouse.get_pos()
-    # if player_rect.collidepoint(mouse_pos):
-    #     print(pygame.mouse.get_pressed())
-
-
     pygame.display.update()
     clock.tick(60) #diz para não rodar acima de 60 fps
