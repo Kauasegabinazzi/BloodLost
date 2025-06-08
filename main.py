@@ -1,6 +1,12 @@
 import pygame
 from sys import exit
 
+def display_score():
+    currentTime = int(pygame.time.get_ticks() / 1000) -  start_time
+    score_surf = test_font.render(f' Score: {currentTime}', False, (255, 255, 255))
+    score_rect = score_surf.get_rect(center = (500, 50))
+    screen.blit(score_surf, score_rect)
+
 pygame.init() #permite iniciar a biblioteca e usar seus recursos
 
 screen = pygame.display.set_mode((800, 600))
@@ -28,8 +34,10 @@ pygame.display.set_caption('BloodLost')
 clock = pygame.time.Clock()
 test_font = pygame.font.Font('fonts\\Pixeltype.ttf', 50)
 
-score_surf = test_font.render('My Game', False, (255, 255, 255))
-score_rect = score_surf.get_rect(center = (500, 50))
+# score_surf = test_font.render('My Game', False, (255, 255, 255))
+# score_rect = score_surf.get_rect(center = (500, 50))
+
+
 
 bat_surface = pygame.transform.scale(batOriginal_surface, newbat_size)
 bat_rect = bat_surface.get_rect(topleft = (700,255))
@@ -38,38 +46,52 @@ hero_surface = pygame.transform.scale(heroOriginal_surface, newHero_size)
 player_rect = hero_surface.get_rect(topleft = (300,245))
 player_gravity = 0
 
-
+game_active = True
+start_time = 0
 
 while True: 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit() # finaliza o pygame
+        if game_active:
+            if event.type == pygame.MOUSEBUTTONDOWN and player_rect.bottom >= 310:
+                if player_rect.collidepoint(event.pos) : 
+                    player_gravity = -15
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and player_rect.bottom >= 310 :
+                    player_gravity = -15
+        else:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE :
+                game_active = True
+                bat_rect.left = 1100
+                start_time =  int(pygame.time.get_ticks() / 1000)
 
-        if event.type == pygame.MOUSEBUTTONDOWN and player_rect.bottom >= 310:
-            if player_rect.collidepoint(event.pos) : 
-                 player_gravity = -15
+    if game_active : 
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE and player_rect.bottom >= 310 :
-                player_gravity = -15
+        screen.blit(backgroud_surface,(0,0))
+        
+        display_score()
 
-    screen.blit(backgroud_surface,(0,0))
-    
-    pygame.draw.rect(screen,(148, 0, 211), score_rect, border_radius=5)
-    pygame.draw.rect(screen, (255, 20, 147), score_rect, width=2, border_radius=5)
-    
-    screen.blit(score_surf,score_rect)
+        # pygame.draw.rect(screen,(148, 0, 211), score_rect, border_radius=5)
+        # pygame.draw.rect(screen, (255, 20, 147), score_rect, width=2, border_radius=5)
+        # screen.blit(score_surf,score_rect)
 
-    bat_rect.x -= 4
-    if bat_rect.right <= 0 : bat_rect.left = 1100
+        bat_rect.x -= 4
+        if bat_rect.right <= 0 : bat_rect.left = 1100
+        screen.blit(bat_surface,bat_rect)
 
-    screen.blit(bat_surface,bat_rect)
+        player_gravity += 1
+        player_rect.y += player_gravity
+        if player_rect.bottom >= 310: player_rect.bottom = 310
+        screen.blit(hero_surface, player_rect)
 
-    player_gravity += 1
-    player_rect.y += player_gravity
-    if player_rect.bottom >= 310: player_rect.bottom = 310
-    screen.blit(hero_surface, player_rect)
-    
+        if bat_rect.colliderect(player_rect) :
+            game_active = False
+    else :
+        # pygame.quit()
+        # exit() # finaliza o pygame
+        print('parou')
+
     pygame.display.update()
     clock.tick(60) #diz para não rodar acima de 60 fps
