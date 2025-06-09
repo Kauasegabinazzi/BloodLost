@@ -61,6 +61,13 @@ player_stand_rect = player_stand.get_rect(topleft=(0, 0))  # posiciona no canto 
 game_name = test_font.render('BloodLost', False, (255, 255, 255))
 game_name_rect = game_name.get_rect(center = (560, 60))
 
+gameover_stand = pygame.image.load('sprites\\gameover.png').convert_alpha()
+gameover_stand = pygame.transform.scale(gameover_stand, new_size)  # redimensiona para ocupar a tela
+gameover_stand_rect = gameover_stand.get_rect(topleft=(0, 0))  # posiciona no canto superior esquerdo
+
+game_name = test_font.render('BloodLost', False, (255, 255, 255))
+game_name_rect = game_name.get_rect(center = (560, 60))
+
 game_message = test_font.render('Press space to run', False, (255, 255, 255))
 game_message_rect = game_message.get_rect(center = (560, 300))
 
@@ -114,15 +121,16 @@ while True:
     else:
         # screen.fill((255, 20, 147))
         # screen.fill('Black')
-        screen.blit(player_stand, player_stand_rect)
-        screen.blit(game_name, game_name_rect)
 
-        score_message = test_font.render(f'Your Score: {score}', False, (255, 255, 255))
-        score_message_rect = score_message.get_rect(center = (560, 300))
+        score_message = test_font.render(f'Your Score: {score}', False, 'Red')
+        score_message_rect = score_message.get_rect(center = (530, 300))
 
         if score == 0:
+            screen.blit(player_stand, player_stand_rect)
+            screen.blit(game_name, game_name_rect)
             screen.blit(game_message, game_message_rect)
         else:
+            screen.blit(gameover_stand, gameover_stand_rect)
             screen.blit(score_message, score_message_rect)
 
     pygame.display.update()
