@@ -7,6 +7,7 @@ def display_score():
     score_surf = test_font.render(f'Score: {currentTime}', False, (255, 255, 255))
     score_rect = score_surf.get_rect(center=(500, 50))
     screen.blit(score_surf, score_rect)
+    return currentTime
 
 pygame.init()
 
@@ -47,9 +48,21 @@ player_rect = hero_surface.get_rect(topleft=(300, 245))
 player_gravity = 0
 
 # Variáveis do jogo
-game_active = True #variavel importante para o jogo estiver ou não
+game_active = False #variavel importante para o jogo estiver ou não
 start_time = 0
 bg_x_pos = 0  # posição do fundo
+score = 0
+
+#intro
+player_stand = pygame.image.load('sprites\\loading.webp').convert_alpha()
+player_stand = pygame.transform.scale(player_stand, new_size)  # redimensiona para ocupar a tela
+player_stand_rect = player_stand.get_rect(topleft=(0, 0))  # posiciona no canto superior esquerdo
+
+game_name = test_font.render('BloodLost', False, (255, 255, 255))
+game_name_rect = game_name.get_rect(center = (560, 60))
+
+game_message = test_font.render('Press space to run', False, (255, 255, 255))
+game_message_rect = game_message.get_rect(center = (560, 300))
 
 while True:
     for event in pygame.event.get():
@@ -80,7 +93,7 @@ while True:
         screen.blit(backgroud_surface, (bg_x_pos, 0))
         screen.blit(backgroud_surface, (bg_x_pos + backgroud_surface.get_width(), 0))
 
-        display_score()
+        score = display_score()
 
         # Inimigo bat
         bat_rect.x -= 4
@@ -99,7 +112,18 @@ while True:
         if bat_rect.colliderect(player_rect):
             game_active = False
     else:
-        print('parou')
+        # screen.fill((255, 20, 147))
+        # screen.fill('Black')
+        screen.blit(player_stand, player_stand_rect)
+        screen.blit(game_name, game_name_rect)
+
+        score_message = test_font.render(f'Your Score: {score}', False, (255, 255, 255))
+        score_message_rect = score_message.get_rect(center = (560, 300))
+
+        if score == 0:
+            screen.blit(game_message, game_message_rect)
+        else:
+            screen.blit(score_message, score_message_rect)
 
     pygame.display.update()
     clock.tick(60)
