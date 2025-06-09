@@ -18,6 +18,11 @@ screen = pygame.display.set_mode((800, 600))
 backgroudOriginal_image = pygame.image.load('sprites\\NES - Castlevania 2 Simons Quest.png').convert_alpha()
 heroOriginal_surface = pygame.image.load('sprites\\warrior - idle.png').convert_alpha()
 batOriginal_surface = pygame.image.load('sprites\\bat.png').convert_alpha()
+knightOriginal_surface = pygame.image.load('sprites\\Enemie1 - idle.png').convert_alpha()
+owlOriginal_surface = pygame.image.load('sprites\\Enemie2 - idle.png').convert_alpha()
+zombieOriginal_surface = pygame.image.load('sprites\\Enemie3 - idle.png').convert_alpha()
+catOriginal_surface = pygame.image.load('sprites\\Enemie4 - idle.png').convert_alpha()
+bat2Original_surface = pygame.image.load('sprites\\Enemie6 - idle.png').convert_alpha()
 
 # pega as escalas das imagens
 backgroudOriginal_width, backgroudOriginal_height = backgroudOriginal_image.get_size()
