@@ -34,6 +34,9 @@ backgroudOriginal_image = pygame.image.load('sprites\\NES - Castlevania 2 Simons
 heroOriginal_surface = pygame.image.load('sprites\\warrior - idle.png').convert_alpha()
 batOriginal_surface = pygame.image.load('sprites\\bat.png').convert_alpha()
 zombieOriginal_surface = pygame.image.load('sprites\\Enemie3 - idle.png').convert_alpha()
+knightOriginal_surface = pygame.image.load('sprites\\Enemie1 - idle.png').convert_alpha()
+owlOriginal_surface = pygame.image.load('sprites\\Enemie2 - idle.png').convert_alpha()
+owlOriginal_surface = pygame.image.load('sprites\\Enemie2 - idle.png').convert_alpha()
 
 # Escala das imagens
 scale_factor = 1.5
@@ -44,11 +47,15 @@ new_size = (int(backgroudOriginal_image.get_width() * scale_factor), int(backgro
 newHero_size = (int(heroOriginal_surface.get_width() * scaleHero_factor), int(heroOriginal_surface.get_height() * scaleHero_factor))
 newbat_size = (int(batOriginal_surface.get_width() * scaleBat_factor), int(batOriginal_surface.get_height() * scaleBat_factor))
 newzombie_size = (int(zombieOriginal_surface.get_width() * scaleBat_factor), int(zombieOriginal_surface.get_height() * scaleBat_factor))
+newknight_size = (int(knightOriginal_surface.get_width() * scaleBat_factor), int(knightOriginal_surface.get_height() * scaleBat_factor))
+newOwl_size = (int(owlOriginal_surface.get_width() * scaleBat_factor), int(owlOriginal_surface.get_height() * scaleBat_factor))
 
 backgroud_surface = pygame.transform.scale(backgroudOriginal_image, new_size)
 hero_surface = pygame.transform.scale(heroOriginal_surface, newHero_size)
 bat_surface = pygame.transform.scale(batOriginal_surface, newbat_size)
 zombie_surface = pygame.transform.scale(zombieOriginal_surface, newzombie_size)
+knight_surface = pygame.transform.scale(knightOriginal_surface, newknight_size)
+owl_surface = pygame.transform.scale(owlOriginal_surface, newOwl_size)
 
 screen = pygame.display.set_mode(new_size)
 pygame.display.set_caption('BloodLost')
