@@ -1,6 +1,7 @@
 import pygame
 from sys import exit
 from random import randint
+from random import choice
 
 def display_score():
     currentTime = int(pygame.time.get_ticks() / 1000) - start_time
@@ -36,7 +37,8 @@ batOriginal_surface = pygame.image.load('sprites\\bat.png').convert_alpha()
 zombieOriginal_surface = pygame.image.load('sprites\\Enemie3 - idle.png').convert_alpha()
 knightOriginal_surface = pygame.image.load('sprites\\Enemie1 - idle.png').convert_alpha()
 owlOriginal_surface = pygame.image.load('sprites\\Enemie2 - idle.png').convert_alpha()
-owlOriginal_surface = pygame.image.load('sprites\\Enemie2 - idle.png').convert_alpha()
+pantherOriginal_surface = pygame.image.load('sprites\\Enemie4 - idle.png').convert_alpha()
+bat1Original_surface = pygame.image.load('sprites\\Enemie6 - idle.png').convert_alpha()
 
 # Escala das imagens
 scale_factor = 1.5
@@ -49,6 +51,8 @@ newbat_size = (int(batOriginal_surface.get_width() * scaleBat_factor), int(batOr
 newzombie_size = (int(zombieOriginal_surface.get_width() * scaleBat_factor), int(zombieOriginal_surface.get_height() * scaleBat_factor))
 newknight_size = (int(knightOriginal_surface.get_width() * scaleBat_factor), int(knightOriginal_surface.get_height() * scaleBat_factor))
 newOwl_size = (int(owlOriginal_surface.get_width() * scaleBat_factor), int(owlOriginal_surface.get_height() * scaleBat_factor))
+newPanther_size = (int(pantherOriginal_surface.get_width() * scaleBat_factor), int(pantherOriginal_surface.get_height() * scaleBat_factor))
+newbat1_size = (int(bat1Original_surface.get_width() * scaleBat_factor), int(bat1Original_surface.get_height() * scaleBat_factor))
 
 backgroud_surface = pygame.transform.scale(backgroudOriginal_image, new_size)
 hero_surface = pygame.transform.scale(heroOriginal_surface, newHero_size)
@@ -56,6 +60,8 @@ bat_surface = pygame.transform.scale(batOriginal_surface, newbat_size)
 zombie_surface = pygame.transform.scale(zombieOriginal_surface, newzombie_size)
 knight_surface = pygame.transform.scale(knightOriginal_surface, newknight_size)
 owl_surface = pygame.transform.scale(owlOriginal_surface, newOwl_size)
+panther_surface = pygame.transform.scale(pantherOriginal_surface, newPanther_size)
+bat1_surface = pygame.transform.scale(bat1Original_surface, newbat1_size)
 
 screen = pygame.display.set_mode(new_size)
 pygame.display.set_caption('BloodLost')
@@ -89,6 +95,14 @@ obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 1500)
 
 obstacle_rect_list = []
+enemies = [
+    {"surface": bat_surface, "y": 255},
+    {"surface": zombie_surface, "y": 248},
+    {"surface": bat1_surface, "y": 255},
+    {"surface": knight_surface, "y": 250},
+    {"surface": owl_surface, "y": 110},
+    {"surface": panther_surface, "y": 270},
+]
 
 while True:
     for event in pygame.event.get():
@@ -97,12 +111,9 @@ while True:
             exit()
 
         if event.type == obstacle_timer and game_active:
-            if randint(0, 2):
-                obstacle_rect = bat_surface.get_rect(topleft=(randint(700, 1100), 255))
-                obstacle_rect_list.append((bat_surface, obstacle_rect))
-            else:
-                obstacle_rect = zombie_surface.get_rect(topleft=(randint(700, 1100), 248))
-                obstacle_rect_list.append((zombie_surface, obstacle_rect))
+                chosen_enemy = choice(enemies)  # pega um inimigo aleatório
+                obstacle_rect = chosen_enemy["surface"].get_rect(topleft=(randint(700, 1100), chosen_enemy["y"]))
+                obstacle_rect_list.append((chosen_enemy["surface"], obstacle_rect))
 
         if game_active:
             if event.type == pygame.MOUSEBUTTONDOWN and player_rect.bottom >= 310:
