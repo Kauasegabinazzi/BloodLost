@@ -262,8 +262,15 @@ enemies = [
 
 bgMusic = pygame.mixer.Sound('music\\Marble Gallery.mp3')
 bgGameOver = pygame.mixer.Sound('music\\game-over-deep-male-voice-clip-352695.mp3')
-bgMusic.play(loops= -1)
-bgGameOver.play(loops= 1)
+
+# Variável para controlar o estado anterior da música
+music_playing = False
+game_over_music_playing = False
+
+# Inicia a música do jogo (caso game_active já seja True no início)
+if game_active and not music_playing:
+    bgMusic.play(loops=-1)
+    music_playing = True
 
 while True:
     for event in pygame.event.get():
@@ -300,8 +307,27 @@ while True:
                 game_active = True
                 obstacle_rect_list.clear()
                 start_time = int(pygame.time.get_ticks() / 1000)
+                
+                # Para a música de game over e inicia a música do jogo
+                if game_over_music_playing:
+                    bgGameOver.stop()
+                    game_over_music_playing = False
+                
+                if not music_playing:
+                    bgMusic.play(loops=-1)
+                    music_playing = True
 
     if game_active:
+        # Garante que a música do jogo está tocando
+        if not music_playing:
+            bgMusic.play(loops=-1)
+            music_playing = True
+        
+        # Para a música de game over se estiver tocando
+        if game_over_music_playing:
+            bgGameOver.stop()
+            game_over_music_playing = False
+
         # Scroll do fundo
         bg_x_pos -= 2
         if bg_x_pos <= -backgroud_surface.get_width():
@@ -324,9 +350,32 @@ while True:
         playerAnimation()
         screen.blit(hero_surface, player_rect)
 
+        # Verifica colisão e muda estado do jogo
+        previous_game_active = game_active
         game_active = collisions(player_rect, obstacle_rect_list)
+        
+        # Se o jogo acabou de terminar (mudou de True para False)
+        if previous_game_active and not game_active:
+            # Para a música do jogo e inicia a música de game over
+            if music_playing:
+                bgMusic.stop()
+                music_playing = False
+            
+            if not game_over_music_playing:
+                bgGameOver.play(loops=0)  # Toca uma vez
+                game_over_music_playing = True
 
     else:
+        # Garante que a música de game over está tocando (se não for a tela inicial)
+        if score > 0 and not game_over_music_playing:
+            bgGameOver.play(loops=0)
+            game_over_music_playing = True
+        
+        # Para a música do jogo se estiver tocando
+        if music_playing:
+            bgMusic.stop()
+            music_playing = False
+
         score_message = test_font.render(f'Your Score: {score}', False, 'Red')
         score_message_rect = score_message.get_rect(center=(530, 300))
 
