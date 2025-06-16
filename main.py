@@ -26,19 +26,50 @@ def collisions(player, obstacles):
                 return False
     return True
 
+def playerAnimation():
+    global hero_surface, playerIndex
+
+    if player_rect.bottom < 310:
+        hero_surface = playerJump
+    else:
+        playerIndex += 0.1
+        if playerIndex >= len(playerWalk): playerIndex = 0
+        hero_surface = playerWalk[int(playerIndex)]
 
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
 
 # Carregando sprites
 backgroudOriginal_image = pygame.image.load('sprites\\NES - Castlevania 2 Simons Quest.png').convert_alpha()
+
 heroOriginal_surface = pygame.image.load('sprites\\warrior - idle.png').convert_alpha()
+heroOriginalwalk1_surface = pygame.image.load('sprites\\warrior-walk1.png').convert_alpha()
+heroOriginalwalk2_surface = pygame.image.load('sprites\\warrior-walk2.png').convert_alpha()
+heroOriginalwalk3_surface = pygame.image.load('sprites\\warrior-walk3.png').convert_alpha()
+heroOriginaljump_surface = pygame.image.load('sprites\\warrior-jump.png').convert_alpha()
+
 batOriginal_surface = pygame.image.load('sprites\\bat.png').convert_alpha()
+batOriginalWalk_surface = pygame.image.load('sprites\\bat-walk.png').convert_alpha()
+batOriginalWalk2_surface = pygame.image.load('sprites\\bat-walk1.png').convert_alpha()
+
 zombieOriginal_surface = pygame.image.load('sprites\\Enemie3 - idle.png').convert_alpha()
+zombieOriginalWalk_surface = pygame.image.load('sprites\\Enemie3-walk.png').convert_alpha()
+
 knightOriginal_surface = pygame.image.load('sprites\\Enemie1 - idle.png').convert_alpha()
+knightOriginalWalk_surface = pygame.image.load('sprites\\Enemie1-walk1.png').convert_alpha()
+knightOriginalWalk1_surface = pygame.image.load('sprites\\Enemie1-walk2.png').convert_alpha()
+
 owlOriginal_surface = pygame.image.load('sprites\\Enemie2 - idle.png').convert_alpha()
-pantherOriginal_surface = pygame.image.load('sprites\\Enemie4 - idle.png').convert_alpha()
+owlOriginalWalk_surface = pygame.image.load('sprites\\Enemie2-walk.png').convert_alpha()
+
 bat1Original_surface = pygame.image.load('sprites\\Enemie6 - idle.png').convert_alpha()
+bat1OriginalWalk_surface = pygame.image.load('sprites\\Enemie6-walk.png').convert_alpha()
+bat1OriginalWalk2_surface = pygame.image.load('sprites\\Enemie6-walk2.png').convert_alpha()
+
+pantherOriginal_surface = pygame.image.load('sprites\\Enemie4-walk.png').convert_alpha()
+pantherOriginalWalk_surface = pygame.image.load('sprites\\Enemie4 - idle.png').convert_alpha()
+pantherOriginalWalk2_surface = pygame.image.load('sprites\\Enemie4-walk1.png').convert_alpha()
+pantherOriginalWalk3_surface = pygame.image.load('sprites\\Enemie4-walk2.png').convert_alpha()
 
 # Escala das imagens
 scale_factor = 1.5
@@ -46,7 +77,6 @@ scaleHero_factor = 2
 scaleBat_factor = 2
 
 new_size = (int(backgroudOriginal_image.get_width() * scale_factor), int(backgroudOriginal_image.get_height() * scale_factor))
-newHero_size = (int(heroOriginal_surface.get_width() * scaleHero_factor), int(heroOriginal_surface.get_height() * scaleHero_factor))
 newbat_size = (int(batOriginal_surface.get_width() * scaleBat_factor), int(batOriginal_surface.get_height() * scaleBat_factor))
 newzombie_size = (int(zombieOriginal_surface.get_width() * scaleBat_factor), int(zombieOriginal_surface.get_height() * scaleBat_factor))
 newknight_size = (int(knightOriginal_surface.get_width() * scaleBat_factor), int(knightOriginal_surface.get_height() * scaleBat_factor))
@@ -54,14 +84,30 @@ newOwl_size = (int(owlOriginal_surface.get_width() * scaleBat_factor), int(owlOr
 newPanther_size = (int(pantherOriginal_surface.get_width() * scaleBat_factor), int(pantherOriginal_surface.get_height() * scaleBat_factor))
 newbat1_size = (int(bat1Original_surface.get_width() * scaleBat_factor), int(bat1Original_surface.get_height() * scaleBat_factor))
 
+newHero_size = (int(heroOriginal_surface.get_width() * scaleHero_factor), int(heroOriginal_surface.get_height() * scaleHero_factor))
+newHeroWalk1_size = (int(heroOriginalwalk1_surface.get_width() * scaleHero_factor), int(heroOriginalwalk1_surface.get_height() * scaleHero_factor))
+newHeroWalk2_size = (int(heroOriginalwalk2_surface.get_width() * scaleHero_factor), int(heroOriginalwalk2_surface.get_height() * scaleHero_factor))
+newHeroWalk3_size = (int(heroOriginalwalk3_surface.get_width() * scaleHero_factor), int(heroOriginalwalk3_surface.get_height() * scaleHero_factor))
+newHeroJump_size = (int(heroOriginaljump_surface.get_width() * scaleHero_factor), int(heroOriginaljump_surface.get_height() * scaleHero_factor))
+
+
 backgroud_surface = pygame.transform.scale(backgroudOriginal_image, new_size)
-hero_surface = pygame.transform.scale(heroOriginal_surface, newHero_size)
 bat_surface = pygame.transform.scale(batOriginal_surface, newbat_size)
 zombie_surface = pygame.transform.scale(zombieOriginal_surface, newzombie_size)
 knight_surface = pygame.transform.scale(knightOriginal_surface, newknight_size)
 owl_surface = pygame.transform.scale(owlOriginal_surface, newOwl_size)
 panther_surface = pygame.transform.scale(pantherOriginal_surface, newPanther_size)
 bat1_surface = pygame.transform.scale(bat1Original_surface, newbat1_size)
+
+hero_surface = pygame.transform.scale(heroOriginal_surface, newHero_size)
+hero_surfaceWalk1 = pygame.transform.scale(heroOriginalwalk1_surface, newHeroWalk1_size)
+hero_surfaceWalk2 = pygame.transform.scale(heroOriginalwalk2_surface, newHeroWalk2_size)
+hero_surfaceWalk3 = pygame.transform.scale(heroOriginalwalk3_surface, newHeroWalk3_size)
+hero_surfaceJump = pygame.transform.scale(heroOriginaljump_surface, newHeroJump_size)
+
+playerWalk = [hero_surface, hero_surfaceWalk1, hero_surfaceWalk2, hero_surfaceWalk3]
+playerJump = hero_surfaceJump
+playerIndex = 0
 
 screen = pygame.display.set_mode(new_size)
 pygame.display.set_caption('BloodLost')
@@ -100,7 +146,7 @@ enemies = [
     {"surface": zombie_surface, "y": 248},
     {"surface": bat1_surface, "y": 255},
     {"surface": knight_surface, "y": 250},
-    {"surface": owl_surface, "y": 110},
+    {"surface": owl_surface, "y": 150},
     {"surface": panther_surface, "y": 270},
 ]
 
@@ -147,6 +193,8 @@ while True:
         player_rect.y += player_gravity
         if player_rect.bottom >= 310:
             player_rect.bottom = 310
+        
+        playerAnimation()
         screen.blit(hero_surface, player_rect)
 
         # Colisão (opcional)
