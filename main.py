@@ -3,6 +3,8 @@ from sys import exit
 from random import randint
 from random import choice
 
+
+
 def display_score():
     currentTime = int(pygame.time.get_ticks() / 1000) - start_time
     score_surf = test_font.render(f'Score: {currentTime}', False, (255, 255, 255))
@@ -12,16 +14,20 @@ def display_score():
 
 def obstacle_movement(obstacle_list):
     new_obstacle_list = []
-    for obstacle_surface, obstacle_rect in obstacle_list:
+    for obstacle_data in obstacle_list:
+        obstacle_surface = obstacle_data["current_surface"]
+        obstacle_rect = obstacle_data["rect"]
+        
         obstacle_rect.x -= 5
         screen.blit(obstacle_surface, obstacle_rect)
         if obstacle_rect.x > -100:
-            new_obstacle_list.append((obstacle_surface, obstacle_rect))
+            new_obstacle_list.append(obstacle_data)
     return new_obstacle_list
 
 def collisions(player, obstacles):
     if obstacles:
-        for surface, obstacle_rect in obstacles:
+        for obstacle_data in obstacles:
+            obstacle_rect = obstacle_data["rect"]
             if player.colliderect(obstacle_rect):
                 return False
     return True
@@ -35,6 +41,54 @@ def playerAnimation():
         playerIndex += 0.1
         if playerIndex >= len(playerWalk): playerIndex = 0
         hero_surface = playerWalk[int(playerIndex)]
+
+def update_enemy_animations():
+    global batFramesIndex, bat1FramesIndex, zombieFramesIndex, knightFramesIndex, owlFramesIndex, pantherFramesIndex
+    
+    # Atualiza animação do bat normal
+    batFramesIndex += 1
+    if batFramesIndex >= len(batFrames):
+        batFramesIndex = 0
+    
+    # Atualiza animação do bat1
+    bat1FramesIndex += 1
+    if bat1FramesIndex >= len(bat1Frames):
+        bat1FramesIndex = 0
+    
+    # Atualiza animação do zombie
+    zombieFramesIndex += 1
+    if zombieFramesIndex >= len(zombieFrames):
+        zombieFramesIndex = 0
+    
+    # Atualiza animação do knight
+    knightFramesIndex += 1
+    if knightFramesIndex >= len(knightFrames):
+        knightFramesIndex = 0
+    
+    # Atualiza animação do owl
+    owlFramesIndex += 1
+    if owlFramesIndex >= len(owlFrames):
+        owlFramesIndex = 0
+    
+    # Atualiza animação do panther
+    pantherFramesIndex += 1
+    if pantherFramesIndex >= len(pantherFrames):
+        pantherFramesIndex = 0
+    
+    # Atualiza os obstáculos com suas respectivas animações
+    for obstacle_data in obstacle_rect_list:
+        if obstacle_data["type"] == "bat":
+            obstacle_data["current_surface"] = batFrames[batFramesIndex]
+        elif obstacle_data["type"] == "bat1":
+            obstacle_data["current_surface"] = bat1Frames[bat1FramesIndex]
+        elif obstacle_data["type"] == "zombie":
+            obstacle_data["current_surface"] = zombieFrames[zombieFramesIndex]
+        elif obstacle_data["type"] == "knight":
+            obstacle_data["current_surface"] = knightFrames[knightFramesIndex]
+        elif obstacle_data["type"] == "owl":
+            obstacle_data["current_surface"] = owlFrames[owlFramesIndex]
+        elif obstacle_data["type"] == "panther":
+            obstacle_data["current_surface"] = pantherFrames[pantherFramesIndex]
 
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
@@ -77,12 +131,18 @@ scaleHero_factor = 2
 scaleBat_factor = 2
 
 new_size = (int(backgroudOriginal_image.get_width() * scale_factor), int(backgroudOriginal_image.get_height() * scale_factor))
-newbat_size = (int(batOriginal_surface.get_width() * scaleBat_factor), int(batOriginal_surface.get_height() * scaleBat_factor))
+
 newzombie_size = (int(zombieOriginal_surface.get_width() * scaleBat_factor), int(zombieOriginal_surface.get_height() * scaleBat_factor))
+newzombieWalk_size = (int(zombieOriginalWalk_surface.get_width() * scaleBat_factor), int(zombieOriginalWalk_surface.get_height() * scaleBat_factor))
 newknight_size = (int(knightOriginal_surface.get_width() * scaleBat_factor), int(knightOriginal_surface.get_height() * scaleBat_factor))
+newknightWalk_size = (int(knightOriginalWalk_surface.get_width() * scaleBat_factor), int(knightOriginalWalk_surface.get_height() * scaleBat_factor))
+newknightWalk1_size = (int(knightOriginalWalk1_surface.get_width() * scaleBat_factor), int(knightOriginalWalk1_surface.get_height() * scaleBat_factor))
 newOwl_size = (int(owlOriginal_surface.get_width() * scaleBat_factor), int(owlOriginal_surface.get_height() * scaleBat_factor))
+newOwlWalk_size = (int(owlOriginalWalk_surface.get_width() * scaleBat_factor), int(owlOriginalWalk_surface.get_height() * scaleBat_factor))
 newPanther_size = (int(pantherOriginal_surface.get_width() * scaleBat_factor), int(pantherOriginal_surface.get_height() * scaleBat_factor))
-newbat1_size = (int(bat1Original_surface.get_width() * scaleBat_factor), int(bat1Original_surface.get_height() * scaleBat_factor))
+newPantherWalk_size = (int(pantherOriginalWalk_surface.get_width() * scaleBat_factor), int(pantherOriginalWalk_surface.get_height() * scaleBat_factor))
+newPantherWalk2_size = (int(pantherOriginalWalk2_surface.get_width() * scaleBat_factor), int(pantherOriginalWalk2_surface.get_height() * scaleBat_factor))
+newPantherWalk3_size = (int(pantherOriginalWalk3_surface.get_width() * scaleBat_factor), int(pantherOriginalWalk3_surface.get_height() * scaleBat_factor))
 
 newHero_size = (int(heroOriginal_surface.get_width() * scaleHero_factor), int(heroOriginal_surface.get_height() * scaleHero_factor))
 newHeroWalk1_size = (int(heroOriginalwalk1_surface.get_width() * scaleHero_factor), int(heroOriginalwalk1_surface.get_height() * scaleHero_factor))
@@ -90,14 +150,31 @@ newHeroWalk2_size = (int(heroOriginalwalk2_surface.get_width() * scaleHero_facto
 newHeroWalk3_size = (int(heroOriginalwalk3_surface.get_width() * scaleHero_factor), int(heroOriginalwalk3_surface.get_height() * scaleHero_factor))
 newHeroJump_size = (int(heroOriginaljump_surface.get_width() * scaleHero_factor), int(heroOriginaljump_surface.get_height() * scaleHero_factor))
 
+newbat_size = (int(batOriginal_surface.get_width() * scaleBat_factor), int(batOriginal_surface.get_height() * scaleBat_factor))
+newbatWalk_size = (int(batOriginalWalk_surface.get_width() * scaleBat_factor), int(batOriginalWalk_surface.get_height() * scaleBat_factor))
+newbatWalk2_size = (int(batOriginalWalk2_surface.get_width() * scaleBat_factor), int(batOriginalWalk2_surface.get_height() * scaleBat_factor))
+
+newbat1_size = (int(bat1Original_surface.get_width() * scaleBat_factor), int(bat1Original_surface.get_height() * scaleBat_factor))
+newbat1Walk_size = (int(bat1OriginalWalk_surface.get_width() * scaleBat_factor), int(bat1OriginalWalk_surface.get_height() * scaleBat_factor))
+newbat1Walk2_size = (int(bat1OriginalWalk2_surface.get_width() * scaleBat_factor), int(bat1OriginalWalk2_surface.get_height() * scaleBat_factor))
 
 backgroud_surface = pygame.transform.scale(backgroudOriginal_image, new_size)
-bat_surface = pygame.transform.scale(batOriginal_surface, newbat_size)
+
+# Escalando sprites dos inimigos
 zombie_surface = pygame.transform.scale(zombieOriginal_surface, newzombie_size)
+zombieWalk_surface = pygame.transform.scale(zombieOriginalWalk_surface, newzombieWalk_size)
+
 knight_surface = pygame.transform.scale(knightOriginal_surface, newknight_size)
+knightWalk_surface = pygame.transform.scale(knightOriginalWalk_surface, newknightWalk_size)
+knightWalk1_surface = pygame.transform.scale(knightOriginalWalk1_surface, newknightWalk1_size)
+
 owl_surface = pygame.transform.scale(owlOriginal_surface, newOwl_size)
+owlWalk_surface = pygame.transform.scale(owlOriginalWalk_surface, newOwlWalk_size)
+
 panther_surface = pygame.transform.scale(pantherOriginal_surface, newPanther_size)
-bat1_surface = pygame.transform.scale(bat1Original_surface, newbat1_size)
+pantherWalk_surface = pygame.transform.scale(pantherOriginalWalk_surface, newPantherWalk_size)
+pantherWalk2_surface = pygame.transform.scale(pantherOriginalWalk2_surface, newPantherWalk2_size)
+pantherWalk3_surface = pygame.transform.scale(pantherOriginalWalk3_surface, newPantherWalk3_size)
 
 hero_surface = pygame.transform.scale(heroOriginal_surface, newHero_size)
 hero_surfaceWalk1 = pygame.transform.scale(heroOriginalwalk1_surface, newHeroWalk1_size)
@@ -108,6 +185,33 @@ hero_surfaceJump = pygame.transform.scale(heroOriginaljump_surface, newHeroJump_
 playerWalk = [hero_surface, hero_surfaceWalk1, hero_surfaceWalk2, hero_surfaceWalk3]
 playerJump = hero_surfaceJump
 playerIndex = 0
+
+bat_surface = pygame.transform.scale(batOriginal_surface, newbat_size)
+batWalk_surface = pygame.transform.scale(batOriginalWalk_surface, newbatWalk_size)
+batWalk2_surface = pygame.transform.scale(batOriginalWalk2_surface, newbatWalk2_size)
+
+batFrames = [bat_surface, batWalk_surface, batWalk2_surface]
+batFramesIndex = 0
+
+bat1_surface = pygame.transform.scale(bat1Original_surface, newbat1_size)
+bat1Walk_surface = pygame.transform.scale(bat1OriginalWalk_surface, newbat1Walk_size)
+bat1Walk2_surface = pygame.transform.scale(bat1OriginalWalk2_surface, newbat1Walk2_size)
+
+bat1Frames = [bat1_surface, bat1Walk_surface, bat1Walk2_surface]
+bat1FramesIndex = 0
+
+# Criando arrays de frames para animação dos inimigos
+zombieFrames = [zombie_surface, zombieWalk_surface]
+zombieFramesIndex = 0
+
+knightFrames = [knight_surface, knightWalk_surface, knightWalk1_surface]
+knightFramesIndex = 0
+
+owlFrames = [owl_surface, owlWalk_surface]
+owlFramesIndex = 0
+
+pantherFrames = [pantherWalk_surface, pantherWalk2_surface, pantherWalk3_surface]
+pantherFramesIndex = 0
 
 screen = pygame.display.set_mode(new_size)
 pygame.display.set_caption('BloodLost')
@@ -140,15 +244,26 @@ game_message_rect = game_message.get_rect(center=(560, 300))
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 1500)
 
+# Timer para animação dos inimigos
+enemy_animation_timer = pygame.USEREVENT + 2
+pygame.time.set_timer(enemy_animation_timer, 150)  # 150ms para animação mais suave
+
 obstacle_rect_list = []
+
+# Definindo os inimigos com tipo para identificação
 enemies = [
-    {"surface": bat_surface, "y": 255},
-    {"surface": zombie_surface, "y": 248},
-    {"surface": bat1_surface, "y": 255},
-    {"surface": knight_surface, "y": 250},
-    {"surface": owl_surface, "y": 150},
-    {"surface": panther_surface, "y": 270},
+    {"surface": bat_surface, "y": 255, "type": "bat"},
+    {"surface": zombie_surface, "y": 248, "type": "zombie"},
+    {"surface": bat1_surface, "y": 255, "type": "bat1"},
+    {"surface": knight_surface, "y": 250, "type": "knight"},
+    {"surface": owl_surface, "y": 150, "type": "owl"},
+    {"surface": panther_surface, "y": 270, "type": "panther"},
 ]
+
+bgMusic = pygame.mixer.Sound('music\\Marble Gallery.mp3')
+bgGameOver = pygame.mixer.Sound('music\\game-over-deep-male-voice-clip-352695.mp3')
+bgMusic.play(loops= -1)
+bgGameOver.play(loops= 1)
 
 while True:
     for event in pygame.event.get():
@@ -156,12 +271,24 @@ while True:
             pygame.quit()
             exit()
 
-        if event.type == obstacle_timer and game_active:
+        if game_active: 
+            if event.type == obstacle_timer:
                 chosen_enemy = choice(enemies)  # pega um inimigo aleatório
                 obstacle_rect = chosen_enemy["surface"].get_rect(topleft=(randint(700, 1100), chosen_enemy["y"]))
-                obstacle_rect_list.append((chosen_enemy["surface"], obstacle_rect))
+                
+                # Criando um dicionário com informações completas do obstáculo
+                obstacle_data = {
+                    "rect": obstacle_rect,
+                    "type": chosen_enemy["type"],
+                    "current_surface": chosen_enemy["surface"]
+                }
+                obstacle_rect_list.append(obstacle_data)
+                
+            if event.type == enemy_animation_timer:
+                update_enemy_animations()
 
         if game_active:
+            
             if event.type == pygame.MOUSEBUTTONDOWN and player_rect.bottom >= 310:
                 if player_rect.collidepoint(event.pos):
                     player_gravity = -15
@@ -196,11 +323,6 @@ while True:
         
         playerAnimation()
         screen.blit(hero_surface, player_rect)
-
-        # Colisão (opcional)
-        # for obstacle_surface, obstacle_rect in obstacle_rect_list:
-        #     if player_rect.colliderect(obstacle_rect):
-        #         game_active = False
 
         game_active = collisions(player_rect, obstacle_rect_list)
 
