@@ -18,3 +18,14 @@ You can verify Python is installed by running:
 
 ```bash
 python --version
+```
+
+### 2. Install PyGame
+```bash
+pip install pygame
+```
+### 3. Runing 
+
+python main.py
+
+
