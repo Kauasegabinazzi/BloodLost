@@ -33,7 +33,7 @@ def obstacle_movement(obstacle_list):
         obstacle_surface = obstacle_data["current_surface"]
         obstacle_rect = obstacle_data["rect"]
         
-        obstacle_rect.x -= 5
+        obstacle_rect.x -= 5 * speed_multiplier
         screen.blit(obstacle_surface, obstacle_rect)
         if obstacle_rect.x > -100:
             new_obstacle_list.append(obstacle_data)
@@ -396,10 +396,15 @@ main_menu_playing = True
 # endregion SONS DO JOGO
 
 # region CONSTS
+
 JUMP_FORCE = -9
 GRAVITY_ASCEND = 0.4  # Gravidade enquanto sobe
 GRAVITY_DESCEND = 0.8 # Gravidade enquanto desce
+
 # endregion CONSTS
+
+# Multiplicador de velocidade do jogo
+speed_multiplier = 1.0
 
 # Se o jogo estiver ativo e a música ainda não estiver tocando,
 # inicia a reprodução da música de fundo.
@@ -416,7 +421,10 @@ while True:
             exit()
 
         # Se o jogo estiver ativo (rodando)
-        if game_active: 
+        if game_active:
+            # Aceleramos o jogo a cada 4s para aumentar a dificuldade do jogo
+            speed_multiplier = 1.0 + (score // 4) * 0.1
+
             # Evento do timer para criar obstáculos periodicamente
             if event.type == obstacle_timer:
                 # Escolhe um inimigo aleatório para criar o obstáculo
@@ -489,7 +497,7 @@ while True:
             game_over_music_playing = False
 
         # Movimento de scroll do fundo (desloca para esquerda)
-        bg_x_pos -= 2
+        bg_x_pos -= 2 * speed_multiplier
         # Quando o fundo sair da tela, reseta posição para loop infinito
         if bg_x_pos <= -backgroud_surface.get_width():
             bg_x_pos = 0
