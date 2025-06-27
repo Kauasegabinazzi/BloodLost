@@ -381,11 +381,17 @@ bgMusic = pygame.mixer.Sound('music\\Marble Gallery.mp3')
 # Som reproduzido quando o jogador perde
 bgGameOver = pygame.mixer.Sound('music\\game-over-deep-male-voice-clip-352695.mp3')
 
+# Som reproduzido na tela inicial do jogo
+bgMainMenu = pygame.mixer.Sound('music\\main-menu.mp3')
+
 # Controla se a música de fundo está tocando
 music_playing = False
 
 # Controla se o som de game over já foi tocado
 game_over_music_playing = False
+
+# Controla se a música na tela inicial está tocando
+main_menu_playing = True
 
 # endregion SONS DO JOGO
 
@@ -440,11 +446,19 @@ while True:
 
         # Controle de input quando o jogo NÃO está ativo (tela inicial ou game over)
         else:
+            bgMainMenu.play(loops=-1)
+            main_menu_playing = True
+
             # Pressionar espaço para iniciar ou reiniciar o jogo
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 game_active = True               # Ativa o jogo
                 obstacle_rect_list.clear()      # Limpa obstáculos antigos
                 start_time = int(pygame.time.get_ticks() / 1000)  # Reseta o timer do jogo
+
+                # Se a música do menu principal estiver tocando, ela para
+                if main_menu_playing:
+                    bgMainMenu.stop()
+                    main_menu_playing = False
                 
                 # Se a música de game over estiver tocando, para ela
                 if game_over_music_playing:
