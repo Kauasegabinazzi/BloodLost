@@ -395,6 +395,12 @@ main_menu_playing = True
 
 # endregion SONS DO JOGO
 
+# region CONSTS
+JUMP_FORCE = -9
+GRAVITY_ASCEND = 0.4  # Gravidade enquanto sobe
+GRAVITY_DESCEND = 0.8 # Gravidade enquanto desce
+# endregion CONSTS
+
 # Se o jogo estiver ativo e a música ainda não estiver tocando,
 # inicia a reprodução da música de fundo.
 if game_active and not music_playing:
@@ -437,12 +443,12 @@ while True:
             if event.type == pygame.MOUSEBUTTONDOWN and player_rect.bottom >= 310:
                 # Verifica se clicou no personagem
                 if player_rect.collidepoint(event.pos):
-                    player_gravity = -15  # Aplica pulo (gravidade negativa)
+                    player_gravity = JUMP_FORCE  # Aplica pulo (gravidade negativa)
             
             # Se pressionar a tecla espaço e estiver no chão
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player_rect.bottom >= 310:
-                    player_gravity = -15  # Pula
+                    player_gravity = JUMP_FORCE  # Pula
 
         # Controle de input quando o jogo NÃO está ativo (tela inicial ou game over)
         else:
@@ -499,8 +505,13 @@ while True:
         obstacle_rect_list = obstacle_movement(obstacle_rect_list)
 
         # Aplica gravidade no jogador e movimenta verticalmente
-        player_gravity += 1
+        if player_gravity < 0:  # Enquanto está subindo
+            player_gravity += GRAVITY_ASCEND
+        else:  # Quando começa a cair
+            player_gravity += GRAVITY_DESCEND
+
         player_rect.y += player_gravity
+
         # Evita que o jogador caia abaixo do chão (posição Y=310)
         if player_rect.bottom >= 310:
             player_rect.bottom = 310
