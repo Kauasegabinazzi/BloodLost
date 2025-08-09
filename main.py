@@ -3,8 +3,6 @@ from sys import exit
 from random import randint
 from random import choice
 
-
-
 def display_score():
     """
     Exibe a pontuação atual na tela com base no tempo de jogo em segundos.
@@ -123,6 +121,161 @@ def update_enemy_animations():
             obstacle_data["current_surface"] = owlFrames[owlFramesIndex]
         elif obstacle_data["type"] == "panther":
             obstacle_data["current_surface"] = pantherFrames[pantherFramesIndex]
+
+def draw_menu():
+    """
+    Desenha o menu principal com opções navegáveis
+    """
+    global selected_option
+    
+    # Background do menu
+    screen.blit(player_stand, player_stand_rect)
+    
+    # Título do jogo
+    title_surf = title_font.render('BloodLost', False, (200, 50, 50))
+    title_rect = title_surf.get_rect(center=(560, 100))
+    screen.blit(title_surf, title_rect)
+    
+    # Subtítulo
+    subtitle_surf = menu_font.render('Castlevania Runner', False, (150, 150, 150))
+    subtitle_rect = subtitle_surf.get_rect(center=(560, 140))
+    screen.blit(subtitle_surf, subtitle_rect)
+    
+    # Opções do menu
+    menu_options = ['START', 'SETTINGS', 'QUIT']
+    
+    for i, option in enumerate(menu_options):
+        # Cor da opção (destaca a selecionada)
+        if i == selected_option:
+            color = (255, 255, 100)  # Amarelo para opção selecionada
+            # Efeito de sombra para opção selecionada
+            shadow_surf = menu_font.render(option, False, (50, 50, 50))
+            shadow_rect = shadow_surf.get_rect(center=(562, 252 + i * 60))
+            screen.blit(shadow_surf, shadow_rect)
+        else:
+            color = (200, 200, 200)  # Cinza claro para outras opções
+        
+        option_surf = menu_font.render(option, False, color)
+        option_rect = option_surf.get_rect(center=(560, 250 + i * 60))
+        screen.blit(option_surf, option_rect)
+        
+        # Indicador visual para opção selecionada
+        if i == selected_option:
+            indicator_surf = menu_font.render('>', False, (255, 255, 100))
+            indicator_rect = indicator_surf.get_rect(center=(460, 250 + i * 60))
+            screen.blit(indicator_surf, indicator_rect)
+    
+    # Instruções na parte inferior
+    instruction_surf = small_font.render('Use SETAS para navegar, ENTER para selecionar', False, (100, 100, 100))
+    instruction_rect = instruction_surf.get_rect(center=(560, 450))
+    screen.blit(instruction_surf, instruction_rect)
+
+def draw_settings():
+    """
+    Desenha a tela de configurações
+    """
+    global volume, selected_setting
+    
+    # Background das configurações
+    screen.blit(player_stand, player_stand_rect)
+    
+    # Título da tela de configurações
+    title_surf = menu_font.render('CONFIGURAÇÕES', False, (200, 50, 50))
+    title_rect = title_surf.get_rect(center=(560, 100))
+    screen.blit(title_surf, title_rect)
+    
+    # Opções de configuração
+    settings_options = [
+        f'Volume: {int(volume * 100)}%',
+        'Dificuldade: Normal',
+        'Voltar'
+    ]
+    
+    for i, option in enumerate(settings_options):
+        # Cor da opção (destaca a selecionada)
+        if i == selected_setting:
+            color = (255, 255, 100)  # Amarelo para opção selecionada
+            # Efeito de sombra
+            shadow_surf = menu_font.render(option, False, (50, 50, 50))
+            shadow_rect = shadow_surf.get_rect(center=(562, 202 + i * 60))
+            screen.blit(shadow_surf, shadow_rect)
+        else:
+            color = (200, 200, 200)  # Cinza claro para outras opções
+        
+        option_surf = menu_font.render(option, False, color)
+        option_rect = option_surf.get_rect(center=(560, 200 + i * 60))
+        screen.blit(option_surf, option_rect)
+        
+        # Indicador visual para opção selecionada
+        if i == selected_setting:
+            indicator_surf = menu_font.render('>', False, (255, 255, 100))
+            indicator_rect = indicator_surf.get_rect(center=(360, 200 + i * 60))
+            screen.blit(indicator_surf, indicator_rect)
+    
+    # Instruções específicas para configurações
+    if selected_setting == 0:  # Volume
+        instruction = 'Use A/D ou SETAS ESQUERDA/DIREITA para ajustar'
+    else:
+        instruction = 'ENTER para selecionar, ESC para voltar'
+    
+    instruction_surf = small_font.render(instruction, False, (100, 100, 100))
+    instruction_rect = instruction_surf.get_rect(center=(560, 400))
+    screen.blit(instruction_surf, instruction_rect)
+
+def handle_menu_input(event):
+    """
+    Gerencia input no menu principal
+    """
+    global selected_option, game_state
+    
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_UP or event.key == pygame.K_w:
+            selected_option = (selected_option - 1) % 3
+        elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+            selected_option = (selected_option + 1) % 3
+        elif event.key == pygame.K_RETURN:
+            if selected_option == 0:  # START
+                game_state = "playing"
+                return True  # Indica que deve iniciar o jogo
+            elif selected_option == 1:  # SETTINGS
+                game_state = "settings"
+            elif selected_option == 2:  # QUIT
+                pygame.quit()
+                exit()
+    return False
+
+def handle_settings_input(event):
+    """
+    Gerencia input na tela de configurações
+    """
+    global selected_setting, game_state, volume
+    
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_UP or event.key == pygame.K_w:
+            selected_setting = (selected_setting - 1) % 3
+        elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+            selected_setting = (selected_setting + 1) % 3
+        elif event.key == pygame.K_ESCAPE:
+            game_state = "menu"
+        elif event.key == pygame.K_RETURN:
+            if selected_setting == 2:  # Voltar
+                game_state = "menu"
+        elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
+            if selected_setting == 0:  # Volume
+                volume = max(0.0, volume - 0.1)
+                update_volume()
+        elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+            if selected_setting == 0:  # Volume
+                volume = min(1.0, volume + 0.1)
+                update_volume()
+
+def update_volume():
+    """
+    Atualiza o volume de todos os sons
+    """
+    bgMusic.set_volume(volume)
+    bgGameOver.set_volume(volume)
+    bgMainMenu.set_volume(volume)
 
 # Inicializa todos os módulos do pygame (som, vídeo, teclado, etc.)
 pygame.init()
@@ -298,8 +451,11 @@ pygame.display.set_caption('BloodLost')
 # Inicializa o relógio para controlar o FPS
 clock = pygame.time.Clock()
 
-# Define a fonte que será usada para exibir textos no jogo
+# Define as fontes que serão usadas para exibir textos no jogo
 test_font = pygame.font.Font('fonts\\Pixeltype.ttf', 50)
+title_font = pygame.font.Font('fonts\\Pixeltype.ttf', 80)
+menu_font = pygame.font.Font('fonts\\Pixeltype.ttf', 40)
+small_font = pygame.font.Font('fonts\\Pixeltype.ttf', 25)
 
 # Define a posição inicial do jogador na tela
 player_rect = hero_surface.get_rect(topleft=(300, 245))
@@ -307,8 +463,8 @@ player_rect = hero_surface.get_rect(topleft=(300, 245))
 # Define a gravidade inicial (sem queda)
 player_gravity = 0
 
-# Estado do jogo (ativo ou em tela de início/fim)
-game_active = False
+# Estados do jogo
+game_state = "menu"  # "menu", "settings", "playing", "game_over"
 
 # Armazena o tempo de início do jogo (usado para calcular pontuação)
 start_time = 0
@@ -319,6 +475,11 @@ bg_x_pos = 0
 # Pontuação do jogador
 score = 0
 
+# Variáveis do menu
+selected_option = 0  # Opção selecionada no menu principal (0=Start, 1=Settings, 2=Quit)
+selected_setting = 0  # Opção selecionada nas configurações
+volume = 0.7  # Volume inicial (70%)
+
 # region ELEMENTOS VISUAIS DA TELA INICIAL E GAME OVER
 
 # Imagem de fundo para a tela inicial (com o personagem em pé)
@@ -326,18 +487,10 @@ player_stand = pygame.image.load('sprites\\loading.webp').convert_alpha()
 player_stand = pygame.transform.scale(player_stand, new_size)
 player_stand_rect = player_stand.get_rect(topleft=(0, 0))
 
-# Título do jogo na tela inicial
-game_name = test_font.render('BloodLost', False, (255, 255, 255))
-game_name_rect = game_name.get_rect(center=(560, 60))
-
 # Tela de fundo para o game over
 gameover_stand = pygame.image.load('sprites\\gameover.png').convert_alpha()
 gameover_stand = pygame.transform.scale(gameover_stand, new_size)
 gameover_stand_rect = gameover_stand.get_rect(topleft=(0, 0))
-
-# Mensagem de instrução na tela inicial
-game_message = test_font.render('Press space to run', False, (255, 255, 255))
-game_message_rect = game_message.get_rect(center=(560, 300))
 
 # endregion ELEMENTOS VISUAIS DA TELA INICIAL E GAME OVER
 
@@ -393,6 +546,9 @@ game_over_music_playing = False
 # Controla se a música na tela inicial está tocando
 main_menu_playing = True
 
+# Configura o volume inicial
+update_volume()
+
 # endregion SONS DO JOGO
 
 # region CONSTS
@@ -401,11 +557,8 @@ GRAVITY_ASCEND = 0.4  # Gravidade enquanto sobe
 GRAVITY_DESCEND = 0.8 # Gravidade enquanto desce
 # endregion CONSTS
 
-# Se o jogo estiver ativo e a música ainda não estiver tocando,
-# inicia a reprodução da música de fundo.
-if game_active and not music_playing:
-    bgMusic.play(loops=-1) # Toca a música indefinidamente (loop infinito)
-    music_playing = True # Marca que a música já está tocando para evitar repetição
+# Inicia a música do menu principal
+bgMainMenu.play(loops=-1)
 
 while True:
     # Captura todos os eventos do Pygame (teclado, mouse, fechar janela, timers etc)
@@ -415,8 +568,21 @@ while True:
             pygame.quit()
             exit()
 
-        # Se o jogo estiver ativo (rodando)
-        if game_active: 
+        # Gerencia eventos baseados no estado atual do jogo
+        if game_state == "menu":
+            if handle_menu_input(event):
+                # Se handle_menu_input retornar True, significa que deve iniciar o jogo
+                obstacle_rect_list.clear()
+                start_time = int(pygame.time.get_ticks() / 1000)
+                bgMainMenu.stop()
+                main_menu_playing = False
+                bgMusic.play(loops=-1)
+                music_playing = True
+                
+        elif game_state == "settings":
+            handle_settings_input(event)
+            
+        elif game_state == "playing":
             # Evento do timer para criar obstáculos periodicamente
             if event.type == obstacle_timer:
                 # Escolhe um inimigo aleatório para criar o obstáculo
@@ -437,9 +603,7 @@ while True:
             if event.type == enemy_animation_timer:
                 update_enemy_animations()
 
-        # Controle de input quando o jogo está ativo
-        if game_active:
-            # Se o jogador clicar com o mouse e estiver no chão (posição Y)
+            # Controles de movimento do jogador
             if event.type == pygame.MOUSEBUTTONDOWN and player_rect.bottom >= 310:
                 # Verifica se clicou no personagem
                 if player_rect.collidepoint(event.pos):
@@ -449,35 +613,64 @@ while True:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and player_rect.bottom >= 310:
                     player_gravity = JUMP_FORCE  # Pula
+                elif event.key == pygame.K_ESCAPE:
+                    # Pausa o jogo e volta ao menu
+                    game_state = "menu"
+                    bgMusic.stop()
+                    music_playing = False
+                    bgMainMenu.play(loops=-1)
+                    main_menu_playing = True
+                    
+        elif game_state == "game_over":
+            # Controle de input na tela de game over
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    # Reinicia o jogo
+                    game_state = "playing"
+                    obstacle_rect_list.clear()
+                    start_time = int(pygame.time.get_ticks() / 1000)
+                    player_rect.bottom = 310
+                    player_gravity = 0
+                    
+                    if game_over_music_playing:
+                        bgGameOver.stop()
+                        game_over_music_playing = False
+                    
+                    if not music_playing:
+                        bgMusic.play(loops=-1)
+                        music_playing = True
+                elif event.key == pygame.K_ESCAPE:
+                    # Volta ao menu principal
+                    game_state = "menu"
+                    if game_over_music_playing:
+                        bgGameOver.stop()
+                        game_over_music_playing = False
+                    bgMainMenu.play(loops=-1)
+                    main_menu_playing = True
 
-        # Controle de input quando o jogo NÃO está ativo (tela inicial ou game over)
-        else:
+    # Renderização baseada no estado do jogo
+    if game_state == "menu":
+        # Para música de gameplay se estiver tocando
+        if music_playing:
+            bgMusic.stop()
+            music_playing = False
+        
+        # Garante que música do menu está tocando
+        if not main_menu_playing:
             bgMainMenu.play(loops=-1)
             main_menu_playing = True
-
-            # Pressionar espaço para iniciar ou reiniciar o jogo
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                game_active = True               # Ativa o jogo
-                obstacle_rect_list.clear()      # Limpa obstáculos antigos
-                start_time = int(pygame.time.get_ticks() / 1000)  # Reseta o timer do jogo
-
-                # Se a música do menu principal estiver tocando, ela para
-                if main_menu_playing:
-                    bgMainMenu.stop()
-                    main_menu_playing = False
-                
-                # Se a música de game over estiver tocando, para ela
-                if game_over_music_playing:
-                    bgGameOver.stop()
-                    game_over_music_playing = False
-                
-                # Inicia a música de fundo se ainda não estiver tocando
-                if not music_playing:
-                    bgMusic.play(loops=-1)
-                    music_playing = True
-
-    # Se o jogo está ativo, executa a lógica principal de gameplay
-    if game_active:
+            
+        draw_menu()
+        
+    elif game_state == "settings":
+        # Para música de gameplay se estiver tocando
+        if music_playing:
+            bgMusic.stop()
+            music_playing = False
+            
+        draw_settings()
+        
+    elif game_state == "playing":
         # Garante que a música de fundo está tocando
         if not music_playing:
             bgMusic.play(loops=-1)
@@ -487,6 +680,11 @@ while True:
         if game_over_music_playing:
             bgGameOver.stop()
             game_over_music_playing = False
+            
+        # Para música do menu se estiver tocando
+        if main_menu_playing:
+            bgMainMenu.stop()
+            main_menu_playing = False
 
         # Movimento de scroll do fundo (desloca para esquerda)
         bg_x_pos -= 2
@@ -522,11 +720,10 @@ while True:
         screen.blit(hero_surface, player_rect)
 
         # Verifica colisão entre jogador e obstáculos
-        previous_game_active = game_active
-        game_active = collisions(player_rect, obstacle_rect_list)
-        
-        # Se o jogo acabou de terminar (estado mudou de True para False)
-        if previous_game_active and not game_active:
+        if not collisions(player_rect, obstacle_rect_list):
+            # Se houve colisão, muda para estado de game over
+            game_state = "game_over"
+            
             # Para a música de fundo e inicia som de game over
             if music_playing:
                 bgMusic.stop()
@@ -535,22 +732,28 @@ while True:
             if not game_over_music_playing:
                 bgGameOver.play(loops=0)  # Toca som de game over uma vez
                 game_over_music_playing = True
-
-    # Se o jogo não estiver ativo (tela inicial ou game over)
-    else:
-        # Se o jogador já fez algum ponto e música de game over não está tocando, toca som
-        if score > 0 and not game_over_music_playing:
-            bgGameOver.play(loops=0)
-            game_over_music_playing = True
-        
+                
+    elif game_state == "game_over":
         # Para a música de fundo se estiver tocando
         if music_playing:
             bgMusic.stop()
             music_playing = False
+            
+        # Para música do menu se estiver tocando
+        if main_menu_playing:
+            bgMainMenu.stop()
+            main_menu_playing = False
 
         # Prepara mensagem com o placar para exibir na tela
         score_message = test_font.render(f'Your Score: {score}', False, 'Red')
         score_message_rect = score_message.get_rect(center=(530, 300))
+        
+        # Instruções para reiniciar
+        restart_message = menu_font.render('Press SPACE to play again', False, (200, 200, 200))
+        restart_message_rect = restart_message.get_rect(center=(530, 350))
+        
+        menu_message = small_font.render('Press ESC to return to menu', False, (150, 150, 150))
+        menu_message_rect = menu_message.get_rect(center=(530, 400))
 
         # Limpa obstáculos da tela
         obstacle_rect_list.clear() 
@@ -558,15 +761,11 @@ while True:
         player_rect.bottom = 310
         player_gravity = 0
 
-        # Se o jogador nunca começou (score 0), exibe tela inicial
-        if score == 0:
-            screen.blit(player_stand, player_stand_rect)
-            screen.blit(game_name, game_name_rect)
-            screen.blit(game_message, game_message_rect)
-        else:
-            # Caso contrário, exibe tela de game over com o placar final
-            screen.blit(gameover_stand, gameover_stand_rect)
-            screen.blit(score_message, score_message_rect)
+        # Exibe tela de game over com o placar final
+        screen.blit(gameover_stand, gameover_stand_rect)
+        screen.blit(score_message, score_message_rect)
+        screen.blit(restart_message, restart_message_rect)
+        screen.blit(menu_message, menu_message_rect)
 
     # Atualiza a tela com tudo que foi desenhado
     pygame.display.update()
