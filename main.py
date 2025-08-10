@@ -1,773 +1,826 @@
 import pygame
 from sys import exit
-from random import randint
-from random import choice
-
-def display_score():
-    """
-    Exibe a pontuação atual na tela com base no tempo de jogo em segundos.
-    
-    Returns:
-        int: tempo (em segundos) desde o início do jogo.
-    """
-    currentTime = int(pygame.time.get_ticks() / 1000) - start_time
-    score_surf = test_font.render(f'Score: {currentTime}', False, (255, 255, 255))
-    score_rect = score_surf.get_rect(center=(500, 50))
-    screen.blit(score_surf, score_rect)
-    return currentTime
-
-def obstacle_movement(obstacle_list):
-    """
-    Move os obstáculos para a esquerda e os mantém na tela enquanto visíveis.
-
-    Args:
-        obstacle_list (list): Lista de dicionários contendo dados dos obstáculos.
-    
-    Returns:
-        list: Lista atualizada com obstáculos ainda visíveis na tela.
-    """
-    new_obstacle_list = []
-    for obstacle_data in obstacle_list:
-        obstacle_surface = obstacle_data["current_surface"]
-        obstacle_rect = obstacle_data["rect"]
-        
-        obstacle_rect.x -= 5
-        screen.blit(obstacle_surface, obstacle_rect)
-        if obstacle_rect.x > -100:
-            new_obstacle_list.append(obstacle_data)
-    return new_obstacle_list
-
-def collisions(player, obstacles):
-    """
-    Verifica se houve colisão entre o jogador e algum obstáculo.
-    
-    Args:
-        player (pygame.Rect): Retângulo do jogador.
-        obstacles (list): Lista de obstáculos (com retângulos).
-
-    Returns:
-        bool: False se houve colisão, True caso contrário.
-    """
-    if obstacles:
-        for obstacle_data in obstacles:
-            obstacle_rect = obstacle_data["rect"]
-            if player.colliderect(obstacle_rect):
-                return False
-    return True
-
-def playerAnimation():
-    """
-    Atualiza a imagem do jogador com base em sua posição:
-    - Se está pulando, mostra o sprite de pulo.
-    - Se está no chão, anima a caminhada.
-    """
-    global hero_surface, playerIndex
-
-    if player_rect.bottom < 310:
-        hero_surface = playerJump
-    else:
-        playerIndex += 0.1
-        if playerIndex >= len(playerWalk): playerIndex = 0
-        hero_surface = playerWalk[int(playerIndex)]
-
-def update_enemy_animations():
-    """
-    Atualiza o índice de animação de cada tipo de inimigo e define o sprite atual
-    de cada obstáculo com base no seu tipo.
-    """
-    global batFramesIndex, bat1FramesIndex, zombieFramesIndex, knightFramesIndex, owlFramesIndex, pantherFramesIndex
-    
-    # Atualiza animação do bat normal
-    batFramesIndex += 1
-    if batFramesIndex >= len(batFrames):
-        batFramesIndex = 0
-    
-    # Atualiza animação do bat1
-    bat1FramesIndex += 1
-    if bat1FramesIndex >= len(bat1Frames):
-        bat1FramesIndex = 0
-    
-    # Atualiza animação do zombie
-    zombieFramesIndex += 1
-    if zombieFramesIndex >= len(zombieFrames):
-        zombieFramesIndex = 0
-    
-    # Atualiza animação do knight
-    knightFramesIndex += 1
-    if knightFramesIndex >= len(knightFrames):
-        knightFramesIndex = 0
-    
-    # Atualiza animação do owl
-    owlFramesIndex += 1
-    if owlFramesIndex >= len(owlFrames):
-        owlFramesIndex = 0
-    
-    # Atualiza animação do panther
-    pantherFramesIndex += 1
-    if pantherFramesIndex >= len(pantherFrames):
-        pantherFramesIndex = 0
-    
-    # Atualiza os obstáculos com suas respectivas animações
-    for obstacle_data in obstacle_rect_list:
-        if obstacle_data["type"] == "bat":
-            obstacle_data["current_surface"] = batFrames[batFramesIndex]
-        elif obstacle_data["type"] == "bat1":
-            obstacle_data["current_surface"] = bat1Frames[bat1FramesIndex]
-        elif obstacle_data["type"] == "zombie":
-            obstacle_data["current_surface"] = zombieFrames[zombieFramesIndex]
-        elif obstacle_data["type"] == "knight":
-            obstacle_data["current_surface"] = knightFrames[knightFramesIndex]
-        elif obstacle_data["type"] == "owl":
-            obstacle_data["current_surface"] = owlFrames[owlFramesIndex]
-        elif obstacle_data["type"] == "panther":
-            obstacle_data["current_surface"] = pantherFrames[pantherFramesIndex]
-
-def draw_menu():
-    """
-    Desenha o menu principal com opções navegáveis
-    """
-    global selected_option
-    
-    # Background do menu
-    screen.blit(player_stand, player_stand_rect)
-    
-    # Título do jogo
-    title_surf = title_font.render('BloodLost', False, (200, 50, 50))
-    title_rect = title_surf.get_rect(center=(560, 100))
-    screen.blit(title_surf, title_rect)
-    
-    # Subtítulo
-    subtitle_surf = menu_font.render('Castlevania Runner', False, (150, 150, 150))
-    subtitle_rect = subtitle_surf.get_rect(center=(560, 140))
-    screen.blit(subtitle_surf, subtitle_rect)
-    
-    # Opções do menu
-    menu_options = ['START', 'SETTINGS', 'QUIT']
-    
-    for i, option in enumerate(menu_options):
-        # Cor da opção (destaca a selecionada)
-        if i == selected_option:
-            color = (255, 255, 100)  # Amarelo para opção selecionada
-            # Efeito de sombra para opção selecionada
-            shadow_surf = menu_font.render(option, False, (50, 50, 50))
-            shadow_rect = shadow_surf.get_rect(center=(562, 252 + i * 60))
-            screen.blit(shadow_surf, shadow_rect)
-        else:
-            color = (200, 200, 200)  # Cinza claro para outras opções
-        
-        option_surf = menu_font.render(option, False, color)
-        option_rect = option_surf.get_rect(center=(560, 250 + i * 60))
-        screen.blit(option_surf, option_rect)
-        
-        # Indicador visual para opção selecionada
-        if i == selected_option:
-            indicator_surf = menu_font.render('>', False, (255, 255, 100))
-            indicator_rect = indicator_surf.get_rect(center=(460, 250 + i * 60))
-            screen.blit(indicator_surf, indicator_rect)
-    
-    # Instruções na parte inferior
-    instruction_surf = small_font.render('Use SETAS para navegar, ENTER para selecionar', False, (100, 100, 100))
-    instruction_rect = instruction_surf.get_rect(center=(560, 450))
-    screen.blit(instruction_surf, instruction_rect)
-
-def draw_settings():
-    """
-    Desenha a tela de configurações
-    """
-    global volume, selected_setting
-    
-    # Background das configurações
-    screen.blit(player_stand, player_stand_rect)
-    
-    # Título da tela de configurações
-    title_surf = menu_font.render('CONFIGURAÇÕES', False, (200, 50, 50))
-    title_rect = title_surf.get_rect(center=(560, 100))
-    screen.blit(title_surf, title_rect)
-    
-    # Opções de configuração
-    settings_options = [
-        f'Volume: {int(volume * 100)}%',
-        'Dificuldade: Normal',
-        'Voltar'
-    ]
-    
-    for i, option in enumerate(settings_options):
-        # Cor da opção (destaca a selecionada)
-        if i == selected_setting:
-            color = (255, 255, 100)  # Amarelo para opção selecionada
-            # Efeito de sombra
-            shadow_surf = menu_font.render(option, False, (50, 50, 50))
-            shadow_rect = shadow_surf.get_rect(center=(562, 202 + i * 60))
-            screen.blit(shadow_surf, shadow_rect)
-        else:
-            color = (200, 200, 200)  # Cinza claro para outras opções
-        
-        option_surf = menu_font.render(option, False, color)
-        option_rect = option_surf.get_rect(center=(560, 200 + i * 60))
-        screen.blit(option_surf, option_rect)
-        
-        # Indicador visual para opção selecionada
-        if i == selected_setting:
-            indicator_surf = menu_font.render('>', False, (255, 255, 100))
-            indicator_rect = indicator_surf.get_rect(center=(360, 200 + i * 60))
-            screen.blit(indicator_surf, indicator_rect)
-    
-    # Instruções específicas para configurações
-    if selected_setting == 0:  # Volume
-        instruction = 'Use A/D ou SETAS ESQUERDA/DIREITA para ajustar'
-    else:
-        instruction = 'ENTER para selecionar, ESC para voltar'
-    
-    instruction_surf = small_font.render(instruction, False, (100, 100, 100))
-    instruction_rect = instruction_surf.get_rect(center=(560, 400))
-    screen.blit(instruction_surf, instruction_rect)
-
-def handle_menu_input(event):
-    """
-    Gerencia input no menu principal
-    """
-    global selected_option, game_state
-    
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_UP or event.key == pygame.K_w:
-            selected_option = (selected_option - 1) % 3
-        elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-            selected_option = (selected_option + 1) % 3
-        elif event.key == pygame.K_RETURN:
-            if selected_option == 0:  # START
-                game_state = "playing"
-                return True  # Indica que deve iniciar o jogo
-            elif selected_option == 1:  # SETTINGS
-                game_state = "settings"
-            elif selected_option == 2:  # QUIT
-                pygame.quit()
-                exit()
-    return False
-
-def handle_settings_input(event):
-    """
-    Gerencia input na tela de configurações
-    """
-    global selected_setting, game_state, volume
-    
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_UP or event.key == pygame.K_w:
-            selected_setting = (selected_setting - 1) % 3
-        elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-            selected_setting = (selected_setting + 1) % 3
-        elif event.key == pygame.K_ESCAPE:
-            game_state = "menu"
-        elif event.key == pygame.K_RETURN:
-            if selected_setting == 2:  # Voltar
-                game_state = "menu"
-        elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
-            if selected_setting == 0:  # Volume
-                volume = max(0.0, volume - 0.1)
-                update_volume()
-        elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-            if selected_setting == 0:  # Volume
-                volume = min(1.0, volume + 0.1)
-                update_volume()
-
-def update_volume():
-    """
-    Atualiza o volume de todos os sons
-    """
-    bgMusic.set_volume(volume)
-    bgGameOver.set_volume(volume)
-    bgMainMenu.set_volume(volume)
-
-# Inicializa todos os módulos do pygame (som, vídeo, teclado, etc.)
-pygame.init()
-
-# Cria a janela principal do jogo com tamanho 800x600 pixels
-screen = pygame.display.set_mode((800, 600))
-
-# region SPRITES
-
-# Carrega a imagem de fundo do jogo e preserva a transparência
-backgroudOriginal_image = pygame.image.load('sprites\\NES - Castlevania 2 Simons Quest.png').convert_alpha()
-
-# Sprites do personagem principal (guerreiro) em diferentes estados
-heroOriginal_surface = pygame.image.load('sprites\\warrior - idle.png').convert_alpha()
-heroOriginalwalk1_surface = pygame.image.load('sprites\\warrior-walk1.png').convert_alpha()
-heroOriginalwalk2_surface = pygame.image.load('sprites\\warrior-walk2.png').convert_alpha()
-heroOriginalwalk3_surface = pygame.image.load('sprites\\warrior-walk3.png').convert_alpha()
-heroOriginaljump_surface = pygame.image.load('sprites\\warrior-jump.png').convert_alpha()
-
-# Sprites de um tipo de morcego com animação de voo
-batOriginal_surface = pygame.image.load('sprites\\bat.png').convert_alpha()
-batOriginalWalk_surface = pygame.image.load('sprites\\bat-walk.png').convert_alpha()
-batOriginalWalk2_surface = pygame.image.load('sprites\\bat-walk1.png').convert_alpha()
-
-# Sprites do zumbi, incluindo idle e caminhada
-zombieOriginal_surface = pygame.image.load('sprites\\Enemie3 - idle.png').convert_alpha()
-zombieOriginalWalk_surface = pygame.image.load('sprites\\Enemie3-walk.png').convert_alpha()
-
-# Sprites do cavaleiro inimigo em idle e duas poses de caminhada
-knightOriginal_surface = pygame.image.load('sprites\\Enemie1 - idle.png').convert_alpha()
-knightOriginalWalk_surface = pygame.image.load('sprites\\Enemie1-walk1.png').convert_alpha()
-knightOriginalWalk1_surface = pygame.image.load('sprites\\Enemie1-walk2.png').convert_alpha()
-
-# Sprites do inimigo tipo coruja parado e em voo
-owlOriginal_surface = pygame.image.load('sprites\\Enemie2 - idle.png').convert_alpha()
-owlOriginalWalk_surface = pygame.image.load('sprites\\Enemie2-walk.png').convert_alpha()
-
-# Outro tipo de morcego com estilo e animação diferentes
-bat1Original_surface = pygame.image.load('sprites\\Enemie6 - idle.png').convert_alpha()
-bat1OriginalWalk_surface = pygame.image.load('sprites\\Enemie6-walk.png').convert_alpha()
-bat1OriginalWalk2_surface = pygame.image.load('sprites\\Enemie6-walk2.png').convert_alpha()
-
-# Sprites da pantera com animações de idle e três fases de caminhada
-pantherOriginal_surface = pygame.image.load('sprites\\Enemie4-walk.png').convert_alpha()
-pantherOriginalWalk_surface = pygame.image.load('sprites\\Enemie4 - idle.png').convert_alpha()
-pantherOriginalWalk2_surface = pygame.image.load('sprites\\Enemie4-walk1.png').convert_alpha()
-pantherOriginalWalk3_surface = pygame.image.load('sprites\\Enemie4-walk2.png').convert_alpha()
-
-# endregion SPRITES
-
-# Escala das imagens
-scale_factor = 1.5
-scaleHero_factor = 2
-scaleBat_factor = 2
-
-# region REDIMENSIONANDO AS SPRITES
-
-# Redimensiona o plano de fundo com o fator de escala geral
-new_size = (int(backgroudOriginal_image.get_width() * scale_factor), int(backgroudOriginal_image.get_height() * scale_factor))
-
-# Redimensiona sprites do zumbi (idle e walk)
-newzombie_size = (int(zombieOriginal_surface.get_width() * scaleBat_factor), int(zombieOriginal_surface.get_height() * scaleBat_factor))
-newzombieWalk_size = (int(zombieOriginalWalk_surface.get_width() * scaleBat_factor), int(zombieOriginalWalk_surface.get_height() * scaleBat_factor))
-
-# Redimensiona sprites do cavaleiro (idle e dois estágios de walk)
-newknight_size = (int(knightOriginal_surface.get_width() * scaleBat_factor), int(knightOriginal_surface.get_height() * scaleBat_factor))
-newknightWalk_size = (int(knightOriginalWalk_surface.get_width() * scaleBat_factor), int(knightOriginalWalk_surface.get_height() * scaleBat_factor))
-newknightWalk1_size = (int(knightOriginalWalk1_surface.get_width() * scaleBat_factor), int(knightOriginalWalk1_surface.get_height() * scaleBat_factor))
-
-# Redimensiona sprites da coruja (idle e walk)
-newOwl_size = (int(owlOriginal_surface.get_width() * scaleBat_factor), int(owlOriginal_surface.get_height() * scaleBat_factor))
-newOwlWalk_size = (int(owlOriginalWalk_surface.get_width() * scaleBat_factor), int(owlOriginalWalk_surface.get_height() * scaleBat_factor))
-
-# Redimensiona sprites da pantera (idle e 3 estágios de caminhada)
-newPanther_size = (int(pantherOriginal_surface.get_width() * scaleBat_factor), int(pantherOriginal_surface.get_height() * scaleBat_factor))
-newPantherWalk_size = (int(pantherOriginalWalk_surface.get_width() * scaleBat_factor), int(pantherOriginalWalk_surface.get_height() * scaleBat_factor))
-newPantherWalk2_size = (int(pantherOriginalWalk2_surface.get_width() * scaleBat_factor), int(pantherOriginalWalk2_surface.get_height() * scaleBat_factor))
-newPantherWalk3_size = (int(pantherOriginalWalk3_surface.get_width() * scaleBat_factor), int(pantherOriginalWalk3_surface.get_height() * scaleBat_factor))
-
-# Redimensiona sprites do herói (idle, 3 walk e jump)
-newHero_size = (int(heroOriginal_surface.get_width() * scaleHero_factor), int(heroOriginal_surface.get_height() * scaleHero_factor))
-newHeroWalk1_size = (int(heroOriginalwalk1_surface.get_width() * scaleHero_factor), int(heroOriginalwalk1_surface.get_height() * scaleHero_factor))
-newHeroWalk2_size = (int(heroOriginalwalk2_surface.get_width() * scaleHero_factor), int(heroOriginalwalk2_surface.get_height() * scaleHero_factor))
-newHeroWalk3_size = (int(heroOriginalwalk3_surface.get_width() * scaleHero_factor), int(heroOriginalwalk3_surface.get_height() * scaleHero_factor))
-newHeroJump_size = (int(heroOriginaljump_surface.get_width() * scaleHero_factor), int(heroOriginaljump_surface.get_height() * scaleHero_factor))
-
-# Redimensiona sprites do primeiro tipo de morcego (idle e 2 voos)
-newbat_size = (int(batOriginal_surface.get_width() * scaleBat_factor), int(batOriginal_surface.get_height() * scaleBat_factor))
-newbatWalk_size = (int(batOriginalWalk_surface.get_width() * scaleBat_factor), int(batOriginalWalk_surface.get_height() * scaleBat_factor))
-newbatWalk2_size = (int(batOriginalWalk2_surface.get_width() * scaleBat_factor), int(batOriginalWalk2_surface.get_height() * scaleBat_factor))
-
-# Redimensiona sprites do segundo tipo de morcego (idle e 2 voos)
-newbat1_size = (int(bat1Original_surface.get_width() * scaleBat_factor), int(bat1Original_surface.get_height() * scaleBat_factor))
-newbat1Walk_size = (int(bat1OriginalWalk_surface.get_width() * scaleBat_factor), int(bat1OriginalWalk_surface.get_height() * scaleBat_factor))
-newbat1Walk2_size = (int(bat1OriginalWalk2_surface.get_width() * scaleBat_factor), int(bat1OriginalWalk2_surface.get_height() * scaleBat_factor))
-
-# endregion REDIMENSIONANDO AS SPRITES
-
-# region AJUSTE DE ESCALA DAS SPRITES
-
-# Ajuste de escala do plano de fundo
-backgroud_surface = pygame.transform.scale(backgroudOriginal_image, new_size)
-
-# Ajuste de escala do zumbi
-zombie_surface = pygame.transform.scale(zombieOriginal_surface, newzombie_size)
-zombieWalk_surface = pygame.transform.scale(zombieOriginalWalk_surface, newzombieWalk_size)
-
-# Ajuste de escala do cavaleiro
-knight_surface = pygame.transform.scale(knightOriginal_surface, newknight_size)
-knightWalk_surface = pygame.transform.scale(knightOriginalWalk_surface, newknightWalk_size)
-knightWalk1_surface = pygame.transform.scale(knightOriginalWalk1_surface, newknightWalk1_size)
-
-# Ajuste de escala da coruja
-owl_surface = pygame.transform.scale(owlOriginal_surface, newOwl_size)
-owlWalk_surface = pygame.transform.scale(owlOriginalWalk_surface, newOwlWalk_size)
-
-# Ajuste de escala da pantera
-panther_surface = pygame.transform.scale(pantherOriginal_surface, newPanther_size)
-pantherWalk_surface = pygame.transform.scale(pantherOriginalWalk_surface, newPantherWalk_size)
-pantherWalk2_surface = pygame.transform.scale(pantherOriginalWalk2_surface, newPantherWalk2_size)
-pantherWalk3_surface = pygame.transform.scale(pantherOriginalWalk3_surface, newPantherWalk3_size)
-
-# Ajuste de escala do personagem principal (herói)
-hero_surface = pygame.transform.scale(heroOriginal_surface, newHero_size)
-hero_surfaceWalk1 = pygame.transform.scale(heroOriginalwalk1_surface, newHeroWalk1_size)
-hero_surfaceWalk2 = pygame.transform.scale(heroOriginalwalk2_surface, newHeroWalk2_size)
-hero_surfaceWalk3 = pygame.transform.scale(heroOriginalwalk3_surface, newHeroWalk3_size)
-hero_surfaceJump = pygame.transform.scale(heroOriginaljump_surface, newHeroJump_size)
-
-# Ajuste de escala do morcego
-bat_surface = pygame.transform.scale(batOriginal_surface, newbat_size)
-batWalk_surface = pygame.transform.scale(batOriginalWalk_surface, newbatWalk_size)
-batWalk2_surface = pygame.transform.scale(batOriginalWalk2_surface, newbatWalk2_size)
-
-# Ajuste de escala do segundo morcego
-bat1_surface = pygame.transform.scale(bat1Original_surface, newbat1_size)
-bat1Walk_surface = pygame.transform.scale(bat1OriginalWalk_surface, newbat1Walk_size)
-bat1Walk2_surface = pygame.transform.scale(bat1OriginalWalk2_surface, newbat1Walk2_size)
-
-# endregion AJUSTE DE ESCALA DAS SPRITES
-
-# region FRAMES PARA ANIMAÇÃO
-
-playerWalk = [hero_surface, hero_surfaceWalk1, hero_surfaceWalk2, hero_surfaceWalk3]
-playerJump = hero_surfaceJump
-batFrames = [bat_surface, batWalk_surface, batWalk2_surface]
-bat1Frames = [bat1_surface, bat1Walk_surface, bat1Walk2_surface]
-zombieFrames = [zombie_surface, zombieWalk_surface]
-knightFrames = [knight_surface, knightWalk_surface, knightWalk1_surface]
-owlFrames = [owl_surface, owlWalk_surface]
-pantherFrames = [pantherWalk_surface, pantherWalk2_surface, pantherWalk3_surface]
-
-# endregion FRAMES PARA ANIMAÇÃO
-
-# region ÍNDICES PARA CONTROLE DE ANIMAÇÃO
-
-playerIndex = 0
-batFramesIndex = 0
-bat1FramesIndex = 0
-zombieFramesIndex = 0
-knightFramesIndex = 0
-owlFramesIndex = 0
-pantherFramesIndex = 0
-
-# endregion ÍNDICES PARA CONTROLE DE ANIMAÇÃO
-
-# Cria a janela do jogo com o tamanho do background redimensionado
-screen = pygame.display.set_mode(new_size)
-
-# Define o título da janela
-pygame.display.set_caption('BloodLost')
-
-# Inicializa o relógio para controlar o FPS
-clock = pygame.time.Clock()
-
-# Define as fontes que serão usadas para exibir textos no jogo
-test_font = pygame.font.Font('fonts\\Pixeltype.ttf', 50)
-title_font = pygame.font.Font('fonts\\Pixeltype.ttf', 80)
-menu_font = pygame.font.Font('fonts\\Pixeltype.ttf', 40)
-small_font = pygame.font.Font('fonts\\Pixeltype.ttf', 25)
-
-# Define a posição inicial do jogador na tela
-player_rect = hero_surface.get_rect(topleft=(300, 245))
-
-# Define a gravidade inicial (sem queda)
-player_gravity = 0
-
-# Estados do jogo
-game_state = "menu"  # "menu", "settings", "playing", "game_over"
-
-# Armazena o tempo de início do jogo (usado para calcular pontuação)
-start_time = 0
-
-# Posição horizontal do plano de fundo (para efeito de scroll)
-bg_x_pos = 0
-
-# Pontuação do jogador
-score = 0
-
-# Variáveis do menu
-selected_option = 0  # Opção selecionada no menu principal (0=Start, 1=Settings, 2=Quit)
-selected_setting = 0  # Opção selecionada nas configurações
-volume = 0.7  # Volume inicial (70%)
-
-# region ELEMENTOS VISUAIS DA TELA INICIAL E GAME OVER
-
-# Imagem de fundo para a tela inicial (com o personagem em pé)
-player_stand = pygame.image.load('sprites\\loading.webp').convert_alpha()
-player_stand = pygame.transform.scale(player_stand, new_size)
-player_stand_rect = player_stand.get_rect(topleft=(0, 0))
-
-# Tela de fundo para o game over
-gameover_stand = pygame.image.load('sprites\\gameover.png').convert_alpha()
-gameover_stand = pygame.transform.scale(gameover_stand, new_size)
-gameover_stand_rect = gameover_stand.get_rect(topleft=(0, 0))
-
-# endregion ELEMENTOS VISUAIS DA TELA INICIAL E GAME OVER
-
-# region TIMERS DO JOGO
-
-# Timer para gerar obstáculos a cada 1500ms (1,5s)
-obstacle_timer = pygame.USEREVENT + 1
-pygame.time.set_timer(obstacle_timer, 1500)
-
-# Timer para atualizar animações dos inimigos a cada 150ms
-enemy_animation_timer = pygame.USEREVENT + 2
-pygame.time.set_timer(enemy_animation_timer, 150)  # 150ms para animação mais suave
-
-# endregion TIMERS DO JOGO
-
-# Armazena os obstáculos atuais que estão na tela
-obstacle_rect_list = []
-
-# region LISTA DE INIMIGOS DISPONÍVEIS
-
-# Cada inimigo possui:
-# - 'surface': o sprite base
-# - 'y': a posição vertical de onde ele será desenhado
-# - 'type': uma string que identifica o tipo (usada para animações e lógica)
-enemies = [
-    {"surface": bat_surface, "y": 255, "type": "bat"},
-    {"surface": zombie_surface, "y": 248, "type": "zombie"},
-    {"surface": bat1_surface, "y": 255, "type": "bat1"},
-    {"surface": knight_surface, "y": 250, "type": "knight"},
-    {"surface": owl_surface, "y": 150, "type": "owl"},
-    {"surface": panther_surface, "y": 270, "type": "panther"},
-]
-
-# endregion LISTA DE INIMIGOS DISPONÍVEIS
-
-# region SONS DO JOGO
-
-# Música de fundo durante o gameplay
-bgMusic = pygame.mixer.Sound('music\\Marble Gallery.mp3')
-
-# Som reproduzido quando o jogador perde
-bgGameOver = pygame.mixer.Sound('music\\game-over-deep-male-voice-clip-352695.mp3')
-
-# Som reproduzido na tela inicial do jogo
-bgMainMenu = pygame.mixer.Sound('music\\main-menu.mp3')
-
-# Controla se a música de fundo está tocando
-music_playing = False
-
-# Controla se o som de game over já foi tocado
-game_over_music_playing = False
-
-# Controla se a música na tela inicial está tocando
-main_menu_playing = True
-
-# Configura o volume inicial
-update_volume()
-
-# endregion SONS DO JOGO
-
-# region CONSTS
+from random import randint, choice
+import json
+import os
+
+# ==================== CONSTANTES ====================
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+FPS = 60
+
+# Física do jogo
 JUMP_FORCE = -9
-GRAVITY_ASCEND = 0.4  # Gravidade enquanto sobe
-GRAVITY_DESCEND = 0.8 # Gravidade enquanto desce
-# endregion CONSTS
+GRAVITY_ASCEND = 0.4
+GRAVITY_DESCEND = 0.8
+GROUND_Y = 310
 
-# Inicia a música do menu principal
-bgMainMenu.play(loops=-1)
+# Fatores de escala
+SCALE_FACTOR = 1.5
+HERO_SCALE = 2
+ENEMY_SCALE = 2
 
-while True:
-    # Captura todos os eventos do Pygame (teclado, mouse, fechar janela, timers etc)
-    for event in pygame.event.get():
-        # Se o evento for fechar a janela, encerra o jogo
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
+# Cores
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (200, 50, 50)
+YELLOW = (255, 255, 100)
+GOLD = (255, 215, 0)
+GRAY = (200, 200, 200)
+LIGHT_GRAY = (150, 150, 150)
+DARK_GRAY = (100, 100, 100)
 
-        # Gerencia eventos baseados no estado atual do jogo
-        if game_state == "menu":
-            if handle_menu_input(event):
-                # Se handle_menu_input retornar True, significa que deve iniciar o jogo
-                obstacle_rect_list.clear()
-                start_time = int(pygame.time.get_ticks() / 1000)
-                bgMainMenu.stop()
-                main_menu_playing = False
-                bgMusic.play(loops=-1)
-                music_playing = True
+# ==================== CLASSE PARA GERENCIAR HIGHSCORE ====================
+class HighscoreManager:
+    def __init__(self, filename='highscore.json'):
+        self.filename = filename
+        self.highscore = self.load()
+    
+    def load(self):
+        """Carrega o highscore do arquivo"""
+        try:
+            if os.path.exists(self.filename):
+                with open(self.filename, 'r') as f:
+                    data = json.load(f)
+                    return data.get('highscore', 0)
+        except:
+            pass
+        return 0
+    
+    def save(self, score):
+        """Salva novo highscore"""
+        try:
+            data = {'highscore': score}
+            with open(self.filename, 'w') as f:
+                json.dump(data, f)
+            self.highscore = score
+        except:
+            pass
+    
+    def is_new_record(self, score):
+        """Verifica se é novo recorde"""
+        return score > self.highscore
+    
+    def update_if_record(self, score):
+        """Atualiza se for novo recorde"""
+        if self.is_new_record(score):
+            self.save(score)
+            return True
+        return False
+    
+    def reset(self):
+        """Reseta o highscore"""
+        self.save(0)
+
+# ==================== CLASSE PARA GERENCIAR RECURSOS ====================
+class ResourceManager:
+    def __init__(self):
+        self.sprites = {}
+        self.sounds = {}
+        self.fonts = {}
+        
+    def load_sprite(self, name, path, scale=1.0):
+        """Carrega e escala um sprite"""
+        try:
+            sprite = pygame.image.load(path).convert_alpha()
+            if scale != 1.0:
+                new_size = (int(sprite.get_width() * scale), int(sprite.get_height() * scale))
+                sprite = pygame.transform.scale(sprite, new_size)
+            self.sprites[name] = sprite
+            return sprite
+        except:
+            print(f"Erro ao carregar sprite: {path}")
+            return None
+    
+    def load_sound(self, name, path, volume=1.0):
+        """Carrega um som"""
+        try:
+            sound = pygame.mixer.Sound(path)
+            sound.set_volume(volume)
+            self.sounds[name] = sound
+            return sound
+        except:
+            print(f"Erro ao carregar som: {path}")
+            return None
+    
+    def load_font(self, name, path, size):
+        """Carrega uma fonte"""
+        try:
+            font = pygame.font.Font(path, size)
+            self.fonts[name] = font
+            return font
+        except:
+            print(f"Erro ao carregar fonte: {path}")
+            return pygame.font.Font(None, size)
+
+# ==================== CLASSE PARA ANIMAÇÕES ====================
+class AnimationManager:
+    def __init__(self):
+        self.animations = {}
+        self.current_frames = {}
+    
+    def add_animation(self, name, frames):
+        """Adiciona uma animação"""
+        self.animations[name] = frames
+        self.current_frames[name] = 0
+    
+    def update(self, name, speed=0.1):
+        """Atualiza uma animação"""
+        if name in self.animations:
+            self.current_frames[name] += speed
+            if self.current_frames[name] >= len(self.animations[name]):
+                self.current_frames[name] = 0
+            return self.animations[name][int(self.current_frames[name])]
+        return None
+    
+    def get_current_frame(self, name):
+        """Retorna o frame atual"""
+        if name in self.animations:
+            return self.animations[name][int(self.current_frames[name])]
+        return None
+
+# ==================== CLASSE PRINCIPAL DO JOGO ====================
+class BloodLostGame:
+    def __init__(self):
+        pygame.init()
+        
+        # Inicialização básica
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption('BloodLost')
+        self.clock = pygame.time.Clock()
+        
+        # Managers
+        self.resource_manager = ResourceManager()
+        self.animation_manager = AnimationManager()
+        self.highscore_manager = HighscoreManager()
+        
+        # Estados do jogo
+        self.game_state = "menu"
+        self.game_active = False
+        
+        # Variáveis do jogo
+        self.score = 0
+        self.start_time = 0
+        self.bg_x_pos = 0
+        self.new_record_timer = 0
+        
+        # Variáveis do jogador
+        self.player_gravity = 0
+        
+        # Variáveis de menu
+        self.selected_option = 0
+        self.selected_setting = 0
+        self.volume = 0.7
+        
+        # Obstáculos
+        self.obstacle_list = []
+        
+        # Controle de áudio
+        self.music_playing = False
+        self.game_over_music_playing = False
+        self.main_menu_playing = True
+        
+        # Carrega recursos
+        self.load_resources()
+        
+        # Configura timers
+        self.setup_timers()
+        
+        # Inicializa player
+        self.setup_player()
+        
+    def load_resources(self):
+        """Carrega todos os recursos do jogo"""
+        rm = self.resource_manager
+        
+        # Carrega sprites
+        # Background
+        rm.load_sprite('background', 'sprites\\NES - Castlevania 2 Simons Quest.png', SCALE_FACTOR)
+        rm.load_sprite('menu_bg', 'sprites\\loading.webp', SCALE_FACTOR)
+        
+        # CORREÇÃO: Carrega a imagem de game over e força ela a ocupar a tela inteira
+        try:
+            gameover_img = pygame.image.load('sprites\\gameover.png').convert_alpha()
+            # Escala a imagem para o tamanho exato da tela
+            gameover_img = pygame.transform.scale(gameover_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
+            rm.sprites['gameover_bg'] = gameover_img
+        except:
+            print("Erro ao carregar imagem de game over")
+            # Cria uma imagem de fallback se não conseguir carregar
+            fallback_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+            fallback_surface.fill((50, 20, 50))  # Cor roxa escura
+            rm.sprites['gameover_bg'] = fallback_surface
+        
+        # Player sprites
+        rm.load_sprite('player_idle', 'sprites\\warrior - idle.png', HERO_SCALE)
+        rm.load_sprite('player_walk1', 'sprites\\warrior-walk1.png', HERO_SCALE)
+        rm.load_sprite('player_walk2', 'sprites\\warrior-walk2.png', HERO_SCALE)
+        rm.load_sprite('player_walk3', 'sprites\\warrior-walk3.png', HERO_SCALE)
+        rm.load_sprite('player_jump', 'sprites\\warrior-jump.png', HERO_SCALE)
+        
+        # Enemy sprites
+        enemies_data = [
+            ('bat', ['sprites\\bat.png', 'sprites\\bat-walk.png', 'sprites\\bat-walk1.png']),
+            ('zombie', ['sprites\\Enemie3 - idle.png', 'sprites\\Enemie3-walk.png']),
+            ('knight', ['sprites\\Enemie1 - idle.png', 'sprites\\Enemie1-walk1.png', 'sprites\\Enemie1-walk2.png']),
+            ('owl', ['sprites\\Enemie2 - idle.png', 'sprites\\Enemie2-walk.png']),
+            ('bat1', ['sprites\\Enemie6 - idle.png', 'sprites\\Enemie6-walk.png', 'sprites\\Enemie6-walk2.png']),
+            ('panther', ['sprites\\Enemie4 - idle.png', 'sprites\\Enemie4-walk.png', 'sprites\\Enemie4-walk1.png', 'sprites\\Enemie4-walk2.png'])
+        ]
+        
+        for enemy_name, sprite_paths in enemies_data:
+            frames = []
+            for i, path in enumerate(sprite_paths):
+                sprite_name = f'{enemy_name}_{i}'
+                frames.append(rm.load_sprite(sprite_name, path, ENEMY_SCALE))
+            self.animation_manager.add_animation(enemy_name, frames)
+        
+        # Player animation
+        player_walk_frames = [
+            rm.sprites['player_idle'],
+            rm.sprites['player_walk1'],
+            rm.sprites['player_walk2'],
+            rm.sprites['player_walk3']
+        ]
+        self.animation_manager.add_animation('player_walk', player_walk_frames)
+        
+        # Carrega sons
+        rm.load_sound('bg_music', 'music\\Marble Gallery.mp3', self.volume)
+        rm.load_sound('game_over', 'music\\game-over-deep-male-voice-clip-352695.mp3', self.volume)
+        rm.load_sound('menu_music', 'music\\main-menu.mp3', self.volume)
+        
+        # Carrega fontes
+        rm.load_font('title', 'fonts\\Pixeltype.ttf', 80)
+        rm.load_font('large', 'fonts\\Pixeltype.ttf', 50)
+        rm.load_font('medium', 'fonts\\Pixeltype.ttf', 40)
+        rm.load_font('small', 'fonts\\Pixeltype.ttf', 25)
+    
+    def setup_timers(self):
+        """Configura os timers do jogo"""
+        self.obstacle_timer = pygame.USEREVENT + 1
+        self.enemy_animation_timer = pygame.USEREVENT + 2
+        pygame.time.set_timer(self.obstacle_timer, 1500)
+        pygame.time.set_timer(self.enemy_animation_timer, 150)
+    
+    def setup_player(self):
+        """Inicializa o jogador"""
+        self.player_rect = self.resource_manager.sprites['player_idle'].get_rect(topleft=(300, 245))
+        self.current_player_surface = self.resource_manager.sprites['player_idle']
+    
+    def update_volume(self):
+        """Atualiza o volume de todos os sons"""
+        for sound in self.resource_manager.sounds.values():
+            sound.set_volume(self.volume)
+    
+    def create_obstacle(self):
+        """Cria um novo obstáculo"""
+        enemy_types = [
+            {'type': 'bat', 'y': 255},
+            {'type': 'zombie', 'y': 248},
+            {'type': 'knight', 'y': 250},
+            {'type': 'owl', 'y': 150},
+            {'type': 'bat1', 'y': 255},
+            {'type': 'panther', 'y': 270}
+        ]
+        
+        chosen_enemy = choice(enemy_types)
+        current_frame = self.animation_manager.get_current_frame(chosen_enemy['type'])
+        
+        if current_frame:
+            obstacle_rect = current_frame.get_rect(topleft=(randint(700, 1100), chosen_enemy['y']))
+            obstacle_data = {
+                'rect': obstacle_rect,
+                'type': chosen_enemy['type'],
+                'surface': current_frame
+            }
+            self.obstacle_list.append(obstacle_data)
+    
+    def update_obstacles(self):
+        """Atualiza posição dos obstáculos"""
+        updated_obstacles = []
+        for obstacle in self.obstacle_list:
+            obstacle['rect'].x -= 5
+            obstacle['surface'] = self.animation_manager.get_current_frame(obstacle['type'])
+            self.screen.blit(obstacle['surface'], obstacle['rect'])
+            
+            if obstacle['rect'].x > -100:
+                updated_obstacles.append(obstacle)
+        
+        self.obstacle_list = updated_obstacles
+    
+    def check_collisions(self):
+        """Verifica colisões"""
+        for obstacle in self.obstacle_list:
+            if self.player_rect.colliderect(obstacle['rect']):
+                return False
+        return True
+    
+    def update_player_animation(self):
+        """Atualiza animação do jogador"""
+        if self.player_rect.bottom < GROUND_Y:
+            self.current_player_surface = self.resource_manager.sprites['player_jump']
+        else:
+            self.current_player_surface = self.animation_manager.update('player_walk', 0.1)
+    
+    def display_score(self):
+        """Exibe pontuação e highscore"""
+        current_time = int(pygame.time.get_ticks() / 1000) - self.start_time
+        
+        # Score atual
+        score_surf = self.resource_manager.fonts['large'].render(f'Score: {current_time}', False, WHITE)
+        self.screen.blit(score_surf, (20, 20))
+        
+        # Highscore com efeitos
+        highscore_color = GOLD
+        if self.highscore_manager.is_new_record(current_time):
+            self.new_record_timer += 1
+            if (self.new_record_timer // 20) % 2:
+                highscore_color = (255, 50, 50)
+            else:
+                highscore_color = YELLOW
+        
+        highscore_surf = self.resource_manager.fonts['small'].render(f'Best: {self.highscore_manager.highscore}', False, highscore_color)
+        self.screen.blit(highscore_surf, (20, 70))
+        
+        # Mensagem de novo recorde
+        if self.highscore_manager.is_new_record(current_time) and current_time > 0:
+            if (self.new_record_timer // 30) % 2:
+                record_surf = self.resource_manager.fonts['medium'].render('NEW RECORD!', False, (255, 50, 50))
+                record_rect = record_surf.get_rect(center=(400, 120))
+                self.screen.blit(record_surf, record_rect)
+        
+        return current_time
+    
+    def draw_menu(self):
+        """Desenha o menu principal"""
+        self.screen.blit(self.resource_manager.sprites['menu_bg'], (0, 0))
+        
+        # Título
+        title_surf = self.resource_manager.fonts['title'].render('BloodLost', False, RED)
+        title_rect = title_surf.get_rect(center=(400, 80))
+        self.screen.blit(title_surf, title_rect)
+        
+        # Subtítulo
+        subtitle_surf = self.resource_manager.fonts['medium'].render('Castlevania Runner', False, LIGHT_GRAY)
+        subtitle_rect = subtitle_surf.get_rect(center=(400, 120))
+        self.screen.blit(subtitle_surf, subtitle_rect)
+        
+        # Highscore
+        highscore_surf = self.resource_manager.fonts['medium'].render(f'Best Score: {self.highscore_manager.highscore}', False, GOLD)
+        highscore_rect = highscore_surf.get_rect(center=(400, 160))
+        self.screen.blit(highscore_surf, highscore_rect)
+        
+        # Opções do menu
+        menu_options = ['START', 'HIGHSCORES', 'SETTINGS', 'QUIT']
+        for i, option in enumerate(menu_options):
+            color = YELLOW if i == self.selected_option else GRAY
+            
+            if i == self.selected_option:
+                # Sombra para opção selecionada
+                shadow_surf = self.resource_manager.fonts['medium'].render(option, False, BLACK)
+                shadow_rect = shadow_surf.get_rect(center=(402, 232 + i * 50))
+                self.screen.blit(shadow_surf, shadow_rect)
                 
-        elif game_state == "settings":
-            handle_settings_input(event)
+                # Indicador
+                indicator_surf = self.resource_manager.fonts['medium'].render('>', False, YELLOW)
+                indicator_rect = indicator_surf.get_rect(center=(300, 230 + i * 50))
+                self.screen.blit(indicator_surf, indicator_rect)
             
-        elif game_state == "playing":
-            # Evento do timer para criar obstáculos periodicamente
-            if event.type == obstacle_timer:
-                # Escolhe um inimigo aleatório para criar o obstáculo
-                chosen_enemy = choice(enemies)
-                # Cria um retângulo para o obstáculo na posição X aleatória à direita e Y fixa
-                obstacle_rect = chosen_enemy["surface"].get_rect(topleft=(randint(700, 1100), chosen_enemy["y"]))
+            option_surf = self.resource_manager.fonts['medium'].render(option, False, color)
+            option_rect = option_surf.get_rect(center=(400, 230 + i * 50))
+            self.screen.blit(option_surf, option_rect)
+        
+        # Instruções
+        instruction_surf = self.resource_manager.fonts['small'].render('Use SETAS para navegar, ENTER para selecionar', False, DARK_GRAY)
+        instruction_rect = instruction_surf.get_rect(center=(400, 470))
+        self.screen.blit(instruction_surf, instruction_rect)
+    
+    def draw_highscores(self):
+        """Desenha tela de highscores"""
+        self.screen.blit(self.resource_manager.sprites['menu_bg'], (0, 0))
+        
+        # Título
+        title_surf = self.resource_manager.fonts['medium'].render('HALL OF FAME', False, RED)
+        title_rect = title_surf.get_rect(center=(400, 80))
+        self.screen.blit(title_surf, title_rect)
+        
+        if self.highscore_manager.highscore > 0:
+            # Troféu
+            trophy_surf = self.resource_manager.fonts['large'].render('🏆', False, GOLD)
+            trophy_rect = trophy_surf.get_rect(center=(300, 200))
+            self.screen.blit(trophy_surf, trophy_rect)
+            
+            # Record
+            record_surf = self.resource_manager.fonts['medium'].render(f'BEST SCORE: {self.highscore_manager.highscore} seconds', False, GOLD)
+            record_rect = record_surf.get_rect(center=(400, 200))
+            self.screen.blit(record_surf, record_rect)
+            
+            # Rank
+            rank_data = self.get_rank_info(self.highscore_manager.highscore)
+            rank_surf = self.resource_manager.fonts['small'].render(f'Rank: {rank_data["title"]}', False, rank_data["color"])
+            rank_rect = rank_surf.get_rect(center=(400, 240))
+            self.screen.blit(rank_surf, rank_rect)
+            
+            # Mensagem
+            message_surf = self.resource_manager.fonts['small'].render(rank_data["message"], False, GRAY)
+            message_rect = message_surf.get_rect(center=(400, 280))
+            self.screen.blit(message_surf, message_rect)
+        else:
+            no_record_surf = self.resource_manager.fonts['medium'].render('No records yet!', False, LIGHT_GRAY)
+            no_record_rect = no_record_surf.get_rect(center=(400, 200))
+            self.screen.blit(no_record_surf, no_record_rect)
+        
+        # Instruções
+        back_surf = self.resource_manager.fonts['small'].render('Press ESC or ENTER to return', False, DARK_GRAY)
+        back_rect = back_surf.get_rect(center=(400, 450))
+        self.screen.blit(back_surf, back_rect)
+    
+    def get_rank_info(self, score):
+        """Retorna informações do rank baseado na pontuação"""
+        if score >= 100:
+            return {"title": "VAMPIRE SLAYER", "color": (255, 50, 50), "message": "You are the ultimate vampire hunter!"}
+        elif score >= 60:
+            return {"title": "DARK KNIGHT", "color": (150, 50, 150), "message": "The castle trembles before you!"}
+        elif score >= 30:
+            return {"title": "CASTLE EXPLORER", "color": (100, 100, 255), "message": "You're getting stronger, warrior!"}
+        elif score >= 15:
+            return {"title": "BRAVE WARRIOR", "color": (255, 150, 50), "message": "Keep training to become legendary!"}
+        else:
+            return {"title": "NOVICE HUNTER", "color": LIGHT_GRAY, "message": "Keep training to become legendary!"}
+    
+    def draw_settings(self):
+        """Desenha tela de configurações"""
+        self.screen.blit(self.resource_manager.sprites['menu_bg'], (0, 0))
+        
+        # Título
+        title_surf = self.resource_manager.fonts['medium'].render('CONFIGURAÇÕES', False, RED)
+        title_rect = title_surf.get_rect(center=(400, 100))
+        self.screen.blit(title_surf, title_rect)
+        
+        # Opções
+        settings_options = [
+            f'Volume: {int(self.volume * 100)}%',
+            'Dificuldade: Normal',
+            'Reset Highscore',
+            'Voltar'
+        ]
+        
+        for i, option in enumerate(settings_options):
+            if i == self.selected_setting:
+                color = YELLOW
+                # Sombra
+                shadow_surf = self.resource_manager.fonts['medium'].render(option, False, BLACK)
+                shadow_rect = shadow_surf.get_rect(center=(402, 182 + i * 50))
+                self.screen.blit(shadow_surf, shadow_rect)
                 
-                # Cria o dicionário com informações do obstáculo para controle e desenho
-                obstacle_data = {
-                    "rect": obstacle_rect,
-                    "type": chosen_enemy["type"],
-                    "current_surface": chosen_enemy["surface"]
-                }
-                # Adiciona o obstáculo na lista de obstáculos ativos
-                obstacle_rect_list.append(obstacle_data)
+                # Indicador
+                indicator_surf = self.resource_manager.fonts['medium'].render('>', False, YELLOW)
+                indicator_rect = indicator_surf.get_rect(center=(200, 180 + i * 50))
+                self.screen.blit(indicator_surf, indicator_rect)
+            else:
+                color = (255, 100, 100) if i == 2 else GRAY  # Vermelho para reset
+            
+            option_surf = self.resource_manager.fonts['medium'].render(option, False, color)
+            option_rect = option_surf.get_rect(center=(400, 180 + i * 50))
+            self.screen.blit(option_surf, option_rect)
+        
+        # Instruções
+        instructions = [
+            'Use A/D ou SETAS ESQUERDA/DIREITA para ajustar volume',
+            'ENTER para selecionar, ESC para voltar',
+            'ENTER para resetar o recorde (não pode ser desfeito!)',
+            'ENTER para selecionar, ESC para voltar'
+        ]
+        
+        instruction_surf = self.resource_manager.fonts['small'].render(instructions[self.selected_setting], False, DARK_GRAY)
+        instruction_rect = instruction_surf.get_rect(center=(400, 400))
+        self.screen.blit(instruction_surf, instruction_rect)
+    
+    def draw_game_over(self):
+        """Desenha tela de game over"""
+        # CORREÇÃO: Garante que a imagem ocupe toda a tela
+        self.screen.blit(self.resource_manager.sprites['gameover_bg'], (0, 0))
+        
+        # Adiciona um overlay semi-transparente para melhor legibilidade do texto
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.set_alpha(100)  # Transparência
+        overlay.fill((0, 0, 0))  # Preto
+        self.screen.blit(overlay, (0, 0))
+        
+        # Novo recorde?
+        is_new_record = self.highscore_manager.is_new_record(self.score) and self.score > 0
+        
+        if is_new_record:
+            # Efeito piscante para novo recorde
+            if (pygame.time.get_ticks() // 500) % 2:
+                record_surf = self.resource_manager.fonts['medium'].render('NEW RECORD!', False, GOLD)
+                record_rect = record_surf.get_rect(center=(400, 240))
                 
-            # Evento do timer para atualizar animações dos inimigos
-            if event.type == enemy_animation_timer:
-                update_enemy_animations()
-
-            # Controles de movimento do jogador
-            if event.type == pygame.MOUSEBUTTONDOWN and player_rect.bottom >= 310:
-                # Verifica se clicou no personagem
-                if player_rect.collidepoint(event.pos):
-                    player_gravity = JUMP_FORCE  # Aplica pulo (gravidade negativa)
-            
-            # Se pressionar a tecla espaço e estiver no chão
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and player_rect.bottom >= 310:
-                    player_gravity = JUMP_FORCE  # Pula
-                elif event.key == pygame.K_ESCAPE:
-                    # Pausa o jogo e volta ao menu
-                    game_state = "menu"
-                    bgMusic.stop()
-                    music_playing = False
-                    bgMainMenu.play(loops=-1)
-                    main_menu_playing = True
-                    
-        elif game_state == "game_over":
-            # Controle de input na tela de game over
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    # Reinicia o jogo
-                    game_state = "playing"
-                    obstacle_rect_list.clear()
-                    start_time = int(pygame.time.get_ticks() / 1000)
-                    player_rect.bottom = 310
-                    player_gravity = 0
-                    
-                    if game_over_music_playing:
-                        bgGameOver.stop()
-                        game_over_music_playing = False
-                    
-                    if not music_playing:
-                        bgMusic.play(loops=-1)
-                        music_playing = True
-                elif event.key == pygame.K_ESCAPE:
-                    # Volta ao menu principal
-                    game_state = "menu"
-                    if game_over_music_playing:
-                        bgGameOver.stop()
-                        game_over_music_playing = False
-                    bgMainMenu.play(loops=-1)
-                    main_menu_playing = True
-
-    # Renderização baseada no estado do jogo
-    if game_state == "menu":
-        # Para música de gameplay se estiver tocando
-        if music_playing:
-            bgMusic.stop()
-            music_playing = False
+                # Sombra do texto
+                shadow_surf = self.resource_manager.fonts['medium'].render('NEW RECORD!', False, BLACK)
+                shadow_rect = shadow_surf.get_rect(center=(402, 242))
+                self.screen.blit(shadow_surf, shadow_rect)
+                self.screen.blit(record_surf, record_rect)
         
-        # Garante que música do menu está tocando
-        if not main_menu_playing:
-            bgMainMenu.play(loops=-1)
-            main_menu_playing = True
-            
-        draw_menu()
+        # Pontuação com sombra
+        score_text = f'Your Score: {self.score}'
+        shadow_surf = self.resource_manager.fonts['large'].render(score_text, False, BLACK)
+        shadow_rect = shadow_surf.get_rect(center=(402, 282))
+        self.screen.blit(shadow_surf, shadow_rect)
         
-    elif game_state == "settings":
-        # Para música de gameplay se estiver tocando
-        if music_playing:
-            bgMusic.stop()
-            music_playing = False
-            
-        draw_settings()
+        score_surf = self.resource_manager.fonts['large'].render(score_text, False, (255, 50, 50))
+        score_rect = score_surf.get_rect(center=(400, 280))
+        self.screen.blit(score_surf, score_rect)
         
-    elif game_state == "playing":
-        # Garante que a música de fundo está tocando
-        if not music_playing:
-            bgMusic.play(loops=-1)
-            music_playing = True
+        # Melhor pontuação com sombra
+        best_text = f'Best: {self.highscore_manager.highscore}'
+        shadow_surf = self.resource_manager.fonts['small'].render(best_text, False, BLACK)
+        shadow_rect = shadow_surf.get_rect(center=(402, 322))
+        self.screen.blit(shadow_surf, shadow_rect)
         
-        # Para a música de game over se estiver tocando
-        if game_over_music_playing:
-            bgGameOver.stop()
-            game_over_music_playing = False
-            
-        # Para música do menu se estiver tocando
-        if main_menu_playing:
-            bgMainMenu.stop()
-            main_menu_playing = False
-
-        # Movimento de scroll do fundo (desloca para esquerda)
-        bg_x_pos -= 2
-        # Quando o fundo sair da tela, reseta posição para loop infinito
-        if bg_x_pos <= -backgroud_surface.get_width():
-            bg_x_pos = 0
-
-        # Desenha o fundo duas vezes para dar efeito de scroll contínuo
-        screen.blit(backgroud_surface, (bg_x_pos, 0))
-        screen.blit(backgroud_surface, (bg_x_pos + backgroud_surface.get_width(), 0))
-
-        # Atualiza e exibe o placar
-        score = display_score()
-
-        # Atualiza a posição e exibe os obstáculos
-        obstacle_rect_list = obstacle_movement(obstacle_rect_list)
-
-        # Aplica gravidade no jogador e movimenta verticalmente
-        if player_gravity < 0:  # Enquanto está subindo
-            player_gravity += GRAVITY_ASCEND
-        else:  # Quando começa a cair
-            player_gravity += GRAVITY_DESCEND
-
-        player_rect.y += player_gravity
-
-        # Evita que o jogador caia abaixo do chão (posição Y=310)
-        if player_rect.bottom >= 310:
-            player_rect.bottom = 310
+        best_surf = self.resource_manager.fonts['small'].render(best_text, False, GOLD)
+        best_rect = best_surf.get_rect(center=(400, 320))
+        self.screen.blit(best_surf, best_rect)
         
-        # Atualiza animação do jogador (corrida ou pulo)
-        playerAnimation()
-        # Desenha o jogador na tela
-        screen.blit(hero_surface, player_rect)
-
-        # Verifica colisão entre jogador e obstáculos
-        if not collisions(player_rect, obstacle_rect_list):
-            # Se houve colisão, muda para estado de game over
-            game_state = "game_over"
+        # Instruções com sombra
+        restart_text = 'Press SPACE to play again'
+        shadow_surf = self.resource_manager.fonts['medium'].render(restart_text, False, BLACK)
+        shadow_rect = shadow_surf.get_rect(center=(402, 372))
+        self.screen.blit(shadow_surf, shadow_rect)
+        
+        restart_surf = self.resource_manager.fonts['medium'].render(restart_text, False, GRAY)
+        restart_rect = restart_surf.get_rect(center=(400, 370))
+        self.screen.blit(restart_surf, restart_rect)
+        
+        menu_text = 'Press ESC to return to menu'
+        shadow_surf = self.resource_manager.fonts['small'].render(menu_text, False, BLACK)
+        shadow_rect = shadow_surf.get_rect(center=(402, 412))
+        self.screen.blit(shadow_surf, shadow_rect)
+        
+        menu_surf = self.resource_manager.fonts['small'].render(menu_text, False, LIGHT_GRAY)
+        menu_rect = menu_surf.get_rect(center=(400, 410))
+        self.screen.blit(menu_surf, menu_rect)
+    
+    def handle_events(self):
+        """Gerencia todos os eventos"""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
             
-            # Para a música de fundo e inicia som de game over
-            if music_playing:
-                bgMusic.stop()
-                music_playing = False
+            # Eventos baseados no estado
+            if self.game_state == "menu":
+                self.handle_menu_events(event)
+            elif self.game_state == "highscores":
+                self.handle_highscore_events(event)
+            elif self.game_state == "settings":
+                self.handle_settings_events(event)
+            elif self.game_state == "playing":
+                self.handle_game_events(event)
+            elif self.game_state == "game_over":
+                self.handle_game_over_events(event)
+        
+        return True
+    
+    def handle_menu_events(self, event):
+        """Gerencia eventos do menu"""
+        if event.type == pygame.KEYDOWN:
+            if event.key in [pygame.K_UP, pygame.K_w]:
+                self.selected_option = (self.selected_option - 1) % 4
+            elif event.key in [pygame.K_DOWN, pygame.K_s]:
+                self.selected_option = (self.selected_option + 1) % 4
+            elif event.key == pygame.K_RETURN:
+                if self.selected_option == 0:  # START
+                    self.start_game()
+                elif self.selected_option == 1:  # HIGHSCORES
+                    self.game_state = "highscores"
+                elif self.selected_option == 2:  # SETTINGS
+                    self.game_state = "settings"
+                elif self.selected_option == 3:  # QUIT
+                    return False
+    
+    def handle_highscore_events(self, event):
+        """Gerencia eventos da tela de highscores"""
+        if event.type == pygame.KEYDOWN:
+            if event.key in [pygame.K_ESCAPE, pygame.K_RETURN]:
+                self.game_state = "menu"
+    
+    def handle_settings_events(self, event):
+        """Gerencia eventos das configurações"""
+        if event.type == pygame.KEYDOWN:
+            if event.key in [pygame.K_UP, pygame.K_w]:
+                self.selected_setting = (self.selected_setting - 1) % 4
+            elif event.key in [pygame.K_DOWN, pygame.K_s]:
+                self.selected_setting = (self.selected_setting + 1) % 4
+            elif event.key == pygame.K_ESCAPE:
+                self.game_state = "menu"
+            elif event.key == pygame.K_RETURN:
+                if self.selected_setting == 2:  # Reset Highscore
+                    self.highscore_manager.reset()
+                elif self.selected_setting == 3:  # Voltar
+                    self.game_state = "menu"
+            elif event.key in [pygame.K_LEFT, pygame.K_a]:
+                if self.selected_setting == 0:  # Volume
+                    self.volume = max(0.0, self.volume - 0.1)
+                    self.update_volume()
+            elif event.key in [pygame.K_RIGHT, pygame.K_d]:
+                if self.selected_setting == 0:  # Volume
+                    self.volume = min(1.0, self.volume + 0.1)
+                    self.update_volume()
+    
+    def handle_game_events(self, event):
+        """Gerencia eventos durante o jogo"""
+        if event.type == self.obstacle_timer:
+            self.create_obstacle()
+        elif event.type == self.enemy_animation_timer:
+            # Atualiza animações dos inimigos
+            for enemy_type in ['bat', 'zombie', 'knight', 'owl', 'bat1', 'panther']:
+                self.animation_manager.update(enemy_type, 1)
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and self.player_rect.bottom >= GROUND_Y:
+                self.player_gravity = JUMP_FORCE
+            elif event.key == pygame.K_ESCAPE:
+                self.game_state = "menu"
+                self.reset_game_state()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if self.player_rect.collidepoint(event.pos) and self.player_rect.bottom >= GROUND_Y:
+                self.player_gravity = JUMP_FORCE
+    
+    def handle_game_over_events(self, event):
+        """Gerencia eventos do game over"""
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                self.start_game()
+            elif event.key == pygame.K_ESCAPE:
+                self.game_state = "menu"
+                self.reset_game_state()
+    
+    def start_game(self):
+        """Inicia uma nova partida"""
+        self.game_state = "playing"
+        self.obstacle_list.clear()
+        self.start_time = int(pygame.time.get_ticks() / 1000)
+        self.new_record_timer = 0
+        self.player_rect.bottom = GROUND_Y
+        self.player_gravity = 0
+        
+        # Música
+        if 'menu_music' in self.resource_manager.sounds:
+            self.resource_manager.sounds['menu_music'].stop()
+        self.main_menu_playing = False
+        
+        if 'bg_music' in self.resource_manager.sounds:
+            self.resource_manager.sounds['bg_music'].play(loops=-1)
+        self.music_playing = True
+    
+    def reset_game_state(self):
+        """Reseta estado do jogo"""
+        self.obstacle_list.clear()
+        self.player_rect.bottom = GROUND_Y
+        self.player_gravity = 0
+        
+        # Para música do jogo
+        if 'bg_music' in self.resource_manager.sounds:
+            self.resource_manager.sounds['bg_music'].stop()
+        self.music_playing = False
+        
+        # Inicia música do menu
+        if 'menu_music' in self.resource_manager.sounds:
+            self.resource_manager.sounds['menu_music'].play(loops=-1)
+        self.main_menu_playing = True
+    
+    def update_game(self):
+        """Atualiza lógica do jogo"""
+        if self.game_state == "playing":
+            # Scroll do background
+            self.bg_x_pos -= 2
+            if self.bg_x_pos <= -self.resource_manager.sprites['background'].get_width():
+                self.bg_x_pos = 0
             
-            if not game_over_music_playing:
-                bgGameOver.play(loops=0)  # Toca som de game over uma vez
-                game_over_music_playing = True
+            # Desenha background com scroll
+            self.screen.blit(self.resource_manager.sprites['background'], (self.bg_x_pos, 0))
+            self.screen.blit(self.resource_manager.sprites['background'], 
+                           (self.bg_x_pos + self.resource_manager.sprites['background'].get_width(), 0))
+            
+            # Atualiza score
+            self.score = self.display_score()
+            
+            # Atualiza obstáculos
+            self.update_obstacles()
+            
+            # Física do jogador
+            if self.player_gravity < 0:
+                self.player_gravity += GRAVITY_ASCEND
+            else:
+                self.player_gravity += GRAVITY_DESCEND
+            
+            self.player_rect.y += self.player_gravity
+            
+            # Limita no chão
+            if self.player_rect.bottom >= GROUND_Y:
+                self.player_rect.bottom = GROUND_Y
+            
+            # Atualiza animação do jogador
+            self.update_player_animation()
+            self.screen.blit(self.current_player_surface, self.player_rect)
+            
+            # Verifica colisões
+            if not self.check_collisions():
+                # Game over
+                if self.highscore_manager.update_if_record(self.score):
+                    pass  # Novo recorde salvo automaticamente
                 
-    elif game_state == "game_over":
-        # Para a música de fundo se estiver tocando
-        if music_playing:
-            bgMusic.stop()
-            music_playing = False
+                self.game_state = "game_over"
+                
+                # Para música e toca game over
+                if 'bg_music' in self.resource_manager.sounds:
+                    self.resource_manager.sounds['bg_music'].stop()
+                self.music_playing = False
+                
+                if 'game_over' in self.resource_manager.sounds:
+                    self.resource_manager.sounds['game_over'].play()
+                self.game_over_music_playing = True
+    
+    def update_audio(self):
+        """Gerencia estados de áudio"""
+        if self.game_state in ["menu", "highscores", "settings"]:
+            if self.music_playing and 'bg_music' in self.resource_manager.sounds:
+                self.resource_manager.sounds['bg_music'].stop()
+                self.music_playing = False
             
-        # Para música do menu se estiver tocando
-        if main_menu_playing:
-            bgMainMenu.stop()
-            main_menu_playing = False
-
-        # Prepara mensagem com o placar para exibir na tela
-        score_message = test_font.render(f'Your Score: {score}', False, 'Red')
-        score_message_rect = score_message.get_rect(center=(530, 300))
+            if not self.main_menu_playing and 'menu_music' in self.resource_manager.sounds:
+                self.resource_manager.sounds['menu_music'].play(loops=-1)
+                self.main_menu_playing = True
+                
+        elif self.game_state == "playing":
+            if self.main_menu_playing and 'menu_music' in self.resource_manager.sounds:
+                self.resource_manager.sounds['menu_music'].stop()
+                self.main_menu_playing = False
+            
+            if not self.music_playing and 'bg_music' in self.resource_manager.sounds:
+                self.resource_manager.sounds['bg_music'].play(loops=-1)
+                self.music_playing = True
+                
+        elif self.game_state == "game_over":
+            if self.music_playing and 'bg_music' in self.resource_manager.sounds:
+                self.resource_manager.sounds['bg_music'].stop()
+                self.music_playing = False
+            
+            if self.main_menu_playing and 'menu_music' in self.resource_manager.sounds:
+                self.resource_manager.sounds['menu_music'].stop()
+                self.main_menu_playing = False
+    
+    def render(self):
+        """Renderiza a tela baseada no estado atual"""
+        if self.game_state == "menu":
+            self.draw_menu()
+        elif self.game_state == "highscores":
+            self.draw_highscores()
+        elif self.game_state == "settings":
+            self.draw_settings()
+        elif self.game_state == "game_over":
+            self.draw_game_over()
+        # Estado "playing" é renderizado em update_game()
+    
+    def run(self):
+        """Loop principal do jogo"""
+        # Inicia música do menu
+        if 'menu_music' in self.resource_manager.sounds:
+            self.resource_manager.sounds['menu_music'].play(loops=-1)
         
-        # Instruções para reiniciar
-        restart_message = menu_font.render('Press SPACE to play again', False, (200, 200, 200))
-        restart_message_rect = restart_message.get_rect(center=(530, 350))
+        running = True
+        while running:
+            # Eventos
+            running = self.handle_events()
+            if not running:
+                break
+            
+            # Atualiza áudio
+            self.update_audio()
+            
+            # Atualiza jogo
+            self.update_game()
+            
+            # Renderização
+            self.render()
+            
+            # Atualiza tela
+            pygame.display.update()
+            self.clock.tick(FPS)
         
-        menu_message = small_font.render('Press ESC to return to menu', False, (150, 150, 150))
-        menu_message_rect = menu_message.get_rect(center=(530, 400))
+        pygame.quit()
+        exit()
 
-        # Limpa obstáculos da tela
-        obstacle_rect_list.clear() 
-        # Reseta jogador para posição inicial e gravidade zerada
-        player_rect.bottom = 310
-        player_gravity = 0
+# ==================== FUNÇÃO PRINCIPAL ====================
+def main():
+    """Função principal"""
+    try:
+        game = BloodLostGame()
+        game.run()
+    except Exception as e:
+        print(f"Erro ao iniciar o jogo: {e}")
+        pygame.quit()
+        exit()
 
-        # Exibe tela de game over com o placar final
-        screen.blit(gameover_stand, gameover_stand_rect)
-        screen.blit(score_message, score_message_rect)
-        screen.blit(restart_message, restart_message_rect)
-        screen.blit(menu_message, menu_message_rect)
-
-    # Atualiza a tela com tudo que foi desenhado
-    pygame.display.update()
-    # Controla o FPS para rodar a 60 frames por segundo
-    clock.tick(60)
+# ==================== EXECUÇÃO ====================
+if __name__ == "__main__":
+    main()
