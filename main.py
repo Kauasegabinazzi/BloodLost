@@ -20,6 +20,10 @@ SCALE_FACTOR = 1.5
 HERO_SCALE = 2
 ENEMY_SCALE = 2
 
+# Sistema de fases - pontuações para mudança de fase
+PHASE_THRESHOLDS = [0, 10, 20, 30, 40]  # Pontuações para mudar de fase
+PHASE_NAMES = ["Castle Entrance", "Dark Corridors", "Ancient Library", "Vampire's Chamber", "Final Battle"]
+
 # Cores
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -139,6 +143,53 @@ class AnimationManager:
             return self.animations[name][int(self.current_frames[name])]
         return None
 
+# ==================== CLASSE PARA GERENCIAR FASES ====================
+class PhaseManager:
+    def __init__(self):
+        self.current_phase = 0
+        self.previous_phase = -1
+        self.phase_change_timer = 0
+        self.show_phase_notification = False
+        
+    def get_current_phase(self, score):
+        """Determina a fase atual baseada na pontuação"""
+        for i in range(len(PHASE_THRESHOLDS) - 1, -1, -1):
+            if score >= PHASE_THRESHOLDS[i]:
+                return i
+        return 0
+    
+    def update_phase(self, score):
+        """Atualiza a fase e detecta mudanças"""
+        new_phase = self.get_current_phase(score)
+        if new_phase != self.current_phase:
+            self.previous_phase = self.current_phase
+            self.current_phase = new_phase
+            self.show_phase_notification = True
+            self.phase_change_timer = 0
+            return True
+        return False
+    
+    def update_notification_timer(self):
+        """Atualiza o timer da notificação de mudança de fase"""
+        if self.show_phase_notification:
+            self.phase_change_timer += 1
+            if self.phase_change_timer > 180:  # 3 segundos a 60 FPS
+                self.show_phase_notification = False
+    
+    def get_phase_name(self, phase_index=None):
+        """Retorna o nome da fase"""
+        if phase_index is None:
+            phase_index = self.current_phase
+        if 0 <= phase_index < len(PHASE_NAMES):
+            return PHASE_NAMES[phase_index]
+        return "Unknown Phase"
+    
+    def get_background_name(self, phase_index=None):
+        """Retorna o nome do background da fase"""
+        if phase_index is None:
+            phase_index = self.current_phase
+        return f'background_phase_{phase_index}'
+
 # ==================== CLASSE PRINCIPAL DO JOGO ====================
 class BloodLostGame:
     def __init__(self):
@@ -153,6 +204,7 @@ class BloodLostGame:
         self.resource_manager = ResourceManager()
         self.animation_manager = AnimationManager()
         self.highscore_manager = HighscoreManager()
+        self.phase_manager = PhaseManager()
         
         # Estados do jogo
         self.game_state = "menu"
@@ -193,22 +245,37 @@ class BloodLostGame:
         """Carrega todos os recursos do jogo"""
         rm = self.resource_manager
         
-        # Carrega sprites
-        # Background
-        rm.load_sprite('background', 'sprites\\NES - Castlevania 2 Simons Quest.png', SCALE_FACTOR)
+        # Carrega sprites de background para cada fase
+        background_paths = [
+            'sprites\\NES - Castlevania 2 Simons Quest.png', 
+            'sprites\\teste8.png', 
+            'sprites\\teste3.png',  
+            'sprites\\teste5.png', 
+            'sprites\\teste2.png', 
+        ]
+        
+        # Carrega cada background de fase
+        for i, path in enumerate(background_paths):
+            background_name = f'background_phase_{i}'
+            loaded_sprite = rm.load_sprite(background_name, path, SCALE_FACTOR)
+            
+            # Se não conseguir carregar, usa o background padrão
+            if loaded_sprite is None and i > 0:
+                print(f"Usando background padrão para fase {i}")
+                rm.sprites[background_name] = rm.sprites['background_phase_0']
+        
+        # Background do menu
         rm.load_sprite('menu_bg', 'sprites\\loading.webp', SCALE_FACTOR)
         
-        # CORREÇÃO: Carrega a imagem de game over e força ela a ocupar a tela inteira
+        # CORREÇÃO: Carrega a imagem de game over
         try:
             gameover_img = pygame.image.load('sprites\\gameover.png').convert_alpha()
-            # Escala a imagem para o tamanho exato da tela
             gameover_img = pygame.transform.scale(gameover_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
             rm.sprites['gameover_bg'] = gameover_img
         except:
             print("Erro ao carregar imagem de game over")
-            # Cria uma imagem de fallback se não conseguir carregar
             fallback_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-            fallback_surface.fill((50, 20, 50))  # Cor roxa escura
+            fallback_surface.fill((50, 20, 50))
             rm.sprites['gameover_bg'] = fallback_surface
         
         # Player sprites
@@ -323,7 +390,7 @@ class BloodLostGame:
             self.current_player_surface = self.animation_manager.update('player_walk', 0.1)
     
     def display_score(self):
-        """Exibe pontuação e highscore"""
+        """Exibe pontuação, highscore e informações de fase"""
         current_time = int(pygame.time.get_ticks() / 1000) - self.start_time
         
         # Score atual
@@ -342,14 +409,49 @@ class BloodLostGame:
         highscore_surf = self.resource_manager.fonts['small'].render(f'Best: {self.highscore_manager.highscore}', False, highscore_color)
         self.screen.blit(highscore_surf, (20, 70))
         
+        # Informações da fase atual
+        phase_name = self.phase_manager.get_phase_name()
+        phase_surf = self.resource_manager.fonts['small'].render(f'Phase {self.phase_manager.current_phase + 1}: {phase_name}', False, LIGHT_GRAY)
+        self.screen.blit(phase_surf, (20, 100))
+        
+        # Próxima fase
+        if self.phase_manager.current_phase < len(PHASE_THRESHOLDS) - 1:
+            next_threshold = PHASE_THRESHOLDS[self.phase_manager.current_phase + 1]
+            remaining = next_threshold - current_time
+            if remaining > 0:
+                next_phase_surf = self.resource_manager.fonts['small'].render(f'Next phase in: {remaining}s', False, YELLOW)
+                self.screen.blit(next_phase_surf, (20, 120))
+        
         # Mensagem de novo recorde
         if self.highscore_manager.is_new_record(current_time) and current_time > 0:
             if (self.new_record_timer // 30) % 2:
                 record_surf = self.resource_manager.fonts['medium'].render('NEW RECORD!', False, (255, 50, 50))
-                record_rect = record_surf.get_rect(center=(400, 120))
+                record_rect = record_surf.get_rect(center=(400, 150))
                 self.screen.blit(record_surf, record_rect)
         
         return current_time
+    
+    def draw_phase_notification(self):
+        """Desenha notificação de mudança de fase"""
+        if self.phase_manager.show_phase_notification:
+            # Fundo semi-transparente
+            notification_surface = pygame.Surface((400, 100))
+            notification_surface.set_alpha(200)
+            notification_surface.fill((0, 0, 0))
+            notification_rect = notification_surface.get_rect(center=(400, 200))
+            self.screen.blit(notification_surface, notification_rect)
+            
+            # Texto de mudança de fase
+            phase_text = f"PHASE {self.phase_manager.current_phase + 1}"
+            phase_surf = self.resource_manager.fonts['large'].render(phase_text, False, GOLD)
+            phase_rect = phase_surf.get_rect(center=(400, 180))
+            self.screen.blit(phase_surf, phase_rect)
+            
+            # Nome da fase
+            name_text = self.phase_manager.get_phase_name()
+            name_surf = self.resource_manager.fonts['medium'].render(name_text, False, WHITE)
+            name_rect = name_surf.get_rect(center=(400, 220))
+            self.screen.blit(name_surf, name_rect)
     
     def draw_menu(self):
         """Desenha o menu principal"""
@@ -415,15 +517,22 @@ class BloodLostGame:
             record_rect = record_surf.get_rect(center=(400, 200))
             self.screen.blit(record_surf, record_rect)
             
+            # Maior fase alcançada
+            max_phase = self.phase_manager.get_current_phase(self.highscore_manager.highscore)
+            phase_text = f'Max Phase: {max_phase + 1} - {PHASE_NAMES[max_phase]}'
+            phase_surf = self.resource_manager.fonts['small'].render(phase_text, False, LIGHT_GRAY)
+            phase_rect = phase_surf.get_rect(center=(400, 230))
+            self.screen.blit(phase_surf, phase_rect)
+            
             # Rank
             rank_data = self.get_rank_info(self.highscore_manager.highscore)
             rank_surf = self.resource_manager.fonts['small'].render(f'Rank: {rank_data["title"]}', False, rank_data["color"])
-            rank_rect = rank_surf.get_rect(center=(400, 240))
+            rank_rect = rank_surf.get_rect(center=(400, 260))
             self.screen.blit(rank_surf, rank_rect)
             
             # Mensagem
             message_surf = self.resource_manager.fonts['small'].render(rank_data["message"], False, GRAY)
-            message_rect = message_surf.get_rect(center=(400, 280))
+            message_rect = message_surf.get_rect(center=(400, 290))
             self.screen.blit(message_surf, message_rect)
         else:
             no_record_surf = self.resource_manager.fonts['medium'].render('No records yet!', False, LIGHT_GRAY)
@@ -498,13 +607,12 @@ class BloodLostGame:
     
     def draw_game_over(self):
         """Desenha tela de game over"""
-        # CORREÇÃO: Garante que a imagem ocupe toda a tela
         self.screen.blit(self.resource_manager.sprites['gameover_bg'], (0, 0))
         
-        # Adiciona um overlay semi-transparente para melhor legibilidade do texto
+        # Adiciona um overlay semi-transparente
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-        overlay.set_alpha(100)  # Transparência
-        overlay.fill((0, 0, 0))  # Preto
+        overlay.set_alpha(100)
+        overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
         
         # Novo recorde?
@@ -542,23 +650,30 @@ class BloodLostGame:
         best_rect = best_surf.get_rect(center=(400, 320))
         self.screen.blit(best_surf, best_rect)
         
+        # Fase máxima alcançada
+        max_phase = self.phase_manager.get_current_phase(self.score)
+        phase_text = f'Max Phase Reached: {max_phase + 1}'
+        phase_surf = self.resource_manager.fonts['small'].render(phase_text, False, LIGHT_GRAY)
+        phase_rect = phase_surf.get_rect(center=(400, 350))
+        self.screen.blit(phase_surf, phase_rect)
+        
         # Instruções com sombra
         restart_text = 'Press SPACE to play again'
         shadow_surf = self.resource_manager.fonts['medium'].render(restart_text, False, BLACK)
-        shadow_rect = shadow_surf.get_rect(center=(402, 372))
+        shadow_rect = shadow_surf.get_rect(center=(402, 392))
         self.screen.blit(shadow_surf, shadow_rect)
         
         restart_surf = self.resource_manager.fonts['medium'].render(restart_text, False, GRAY)
-        restart_rect = restart_surf.get_rect(center=(400, 370))
+        restart_rect = restart_surf.get_rect(center=(400, 390))
         self.screen.blit(restart_surf, restart_rect)
         
         menu_text = 'Press ESC to return to menu'
         shadow_surf = self.resource_manager.fonts['small'].render(menu_text, False, BLACK)
-        shadow_rect = shadow_surf.get_rect(center=(402, 412))
+        shadow_rect = shadow_surf.get_rect(center=(402, 432))
         self.screen.blit(shadow_surf, shadow_rect)
         
         menu_surf = self.resource_manager.fonts['small'].render(menu_text, False, LIGHT_GRAY)
-        menu_rect = menu_surf.get_rect(center=(400, 410))
+        menu_rect = menu_surf.get_rect(center=(400, 430))
         self.screen.blit(menu_surf, menu_rect)
     
     def handle_events(self):
@@ -663,6 +778,9 @@ class BloodLostGame:
         self.player_rect.bottom = GROUND_Y
         self.player_gravity = 0
         
+        # Reseta o gerenciador de fases
+        self.phase_manager = PhaseManager()
+        
         # Música
         if 'menu_music' in self.resource_manager.sounds:
             self.resource_manager.sounds['menu_music'].stop()
@@ -678,6 +796,9 @@ class BloodLostGame:
         self.player_rect.bottom = GROUND_Y
         self.player_gravity = 0
         
+        # Reseta o gerenciador de fases
+        self.phase_manager = PhaseManager()
+        
         # Para música do jogo
         if 'bg_music' in self.resource_manager.sounds:
             self.resource_manager.sounds['bg_music'].stop()
@@ -688,21 +809,35 @@ class BloodLostGame:
             self.resource_manager.sounds['menu_music'].play(loops=-1)
         self.main_menu_playing = True
     
+    def get_current_background(self):
+        """Retorna o background da fase atual"""
+        background_name = self.phase_manager.get_background_name()
+        if background_name in self.resource_manager.sprites:
+            return self.resource_manager.sprites[background_name]
+        else:
+            return self.resource_manager.sprites['background_phase_0']  # Fallback
+    
     def update_game(self):
         """Atualiza lógica do jogo"""
         if self.game_state == "playing":
             # Scroll do background
             self.bg_x_pos -= 2
-            if self.bg_x_pos <= -self.resource_manager.sprites['background'].get_width():
+            current_bg = self.get_current_background()
+            if self.bg_x_pos <= -current_bg.get_width():
                 self.bg_x_pos = 0
             
-            # Desenha background com scroll
-            self.screen.blit(self.resource_manager.sprites['background'], (self.bg_x_pos, 0))
-            self.screen.blit(self.resource_manager.sprites['background'], 
-                           (self.bg_x_pos + self.resource_manager.sprites['background'].get_width(), 0))
+            # Desenha background com scroll (usando o background da fase atual)
+            self.screen.blit(current_bg, (self.bg_x_pos, 0))
+            self.screen.blit(current_bg, (self.bg_x_pos + current_bg.get_width(), 0))
             
             # Atualiza score
             self.score = self.display_score()
+            
+            # Atualiza fase baseada no score
+            phase_changed = self.phase_manager.update_phase(self.score)
+            
+            # Atualiza timer de notificação de mudança de fase
+            self.phase_manager.update_notification_timer()
             
             # Atualiza obstáculos
             self.update_obstacles()
@@ -722,6 +857,9 @@ class BloodLostGame:
             # Atualiza animação do jogador
             self.update_player_animation()
             self.screen.blit(self.current_player_surface, self.player_rect)
+            
+            # Desenha notificação de mudança de fase (por cima de tudo)
+            self.draw_phase_notification()
             
             # Verifica colisões
             if not self.check_collisions():
