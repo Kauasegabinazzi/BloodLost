@@ -816,11 +816,11 @@ class BloodLostGame:
             rm.sprites['gameover_bg'] = fallback_surface
         
         # Player sprites
-        rm.load_sprite('player_idle', 'sprites\\warrior - idle.png', HERO_SCALE)
-        rm.load_sprite('player_walk1', 'sprites\\warrior-walk1.png', HERO_SCALE)
-        rm.load_sprite('player_walk2', 'sprites\\warrior-walk2.png', HERO_SCALE)
-        rm.load_sprite('player_walk3', 'sprites\\warrior-walk3.png', HERO_SCALE)
-        rm.load_sprite('player_jump', 'sprites\\warrior-jump.png', HERO_SCALE)
+        rm.load_sprite('player_idle', 'sprites\\walk1.png', HERO_SCALE)
+        rm.load_sprite('player_walk1', 'sprites\\walk1.png', HERO_SCALE)
+        rm.load_sprite('player_walk2', 'sprites\\wal2.png', HERO_SCALE)
+        rm.load_sprite('player_walk3', 'sprites\\walk3.png', HERO_SCALE)
+        rm.load_sprite('player_jump', 'sprites\\jump.png', HERO_SCALE)
         
         # Boss sprites (usando inimigos existentes como placeholder)
         self.boss_sprites = {}
