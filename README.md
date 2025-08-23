@@ -8,7 +8,6 @@ It features player movement, animated enemies, obstacles, scoring, and sound eff
 ## 👥 Team Members
 
 - **Kauã Segabinazzi**
-- **Leonardo Rossi Quines**
 
 ## 🛠️ Requirements & Installation
 
