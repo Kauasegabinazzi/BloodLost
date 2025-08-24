@@ -50,7 +50,6 @@ DARK_GRAY = (100, 100, 100)
 TEXTS = {
     "en": {
         "title": "BloodLost",
-        "subtitle": "Fixed Walk Animation",
         "best_score": "Best Score: {}",
         "start": "START",
         "highscores": "HIGHSCORES",
@@ -123,11 +122,10 @@ TEXTS = {
     },
     "pt": {
         "title": "BloodLost",
-        "subtitle": "Animação de Caminhada Corrigida",
-        "best_score": "Melhor Pontuação: {}",
+        "best_score": "Melhor Pontuacao: {}",
         "start": "INICIAR",
         "highscores": "RECORDES",
-        "settings": "CONFIGURAÇÕES",
+        "settings": "CONFIGURACOES",
         "language": "IDIOMA",
         "quit": "SAIR",
         "navigate": "Use SETAS para navegar, ENTER para selecionar",
@@ -144,7 +142,7 @@ TEXTS = {
         "rank": "Rank: {}",
         "no_records": "Ainda não há recordes!",
         "press_back": "Aperte ESC ou ENTER para voltar",
-        "configurations": "CONFIGURAÇÕES",
+        "configurations": "CONFIGURACOES",
         "volume": "Volume: {}%",
         "difficulty": "Dificuldade: Normal",
         "reset_highscore": "Resetar Recorde",
@@ -428,19 +426,15 @@ class PlayerAttackSystem:
     def draw_ui(self, screen, fonts):
         lang = self.language_manager.current_language
         
-        if self.attack_cooldown > 0:
-            cooldown_text = self.language_manager.get_text("whip_cooldown").format(self.attack_cooldown)
-            cooldown_surf = fonts["small"].render(cooldown_text, False, (255, 200, 100))
-            screen.blit(cooldown_surf, (SCREEN_WIDTH - 200, 50))
-        else:
-            ready_text = self.language_manager.get_text("whip_ready")
-            ready_surf = fonts["small"].render(ready_text, False, (100, 255, 100))
-            screen.blit(ready_surf, (SCREEN_WIDTH - 200, 50))
+        # if self.attack_cooldown > 0:
+        #     cooldown_text = self.language_manager.get_text("whip_cooldown").format(self.attack_cooldown)
+        #     cooldown_surf = fonts["small"].render(cooldown_text, False, (255, 200, 100))
+        #     screen.blit(cooldown_surf, (SCREEN_WIDTH - 200, 50))
 
-        if self.enemies_defeated > 0:
-            kills_text = self.language_manager.get_text("enemies_defeated").format(self.enemies_defeated)
-            kills_surf = fonts["small"].render(kills_text, False, (200, 200, 200))
-            screen.blit(kills_surf, (SCREEN_WIDTH - 200, 80))
+        # if self.enemies_defeated > 0:
+        #     kills_text = self.language_manager.get_text("enemies_defeated").format(self.enemies_defeated)
+        #     kills_surf = fonts["small"].render(kills_text, False, (200, 200, 200))
+        #     screen.blit(kills_surf, (SCREEN_WIDTH - 200, 80))
 
         if self.combo_counter > 1:
             combo_color = (
@@ -1527,13 +1521,13 @@ class BloodLostGame:
         )
         self.screen.blit(highscore_surf, (20, 70))
 
-        phase_name = self.phase_manager.get_phase_name()
-        phase_surf = self.resource_manager.fonts["small"].render(
-            self.language_manager.get_text("phase").format(self.phase_manager.current_phase + 1, phase_name),
-            False,
-            LIGHT_GRAY,
-        )
-        self.screen.blit(phase_surf, (20, 100))
+        # phase_name = self.phase_manager.get_phase_name()
+        # phase_surf = self.resource_manager.fonts["small"].render(
+        #     self.language_manager.get_text("phase").format(self.phase_manager.current_phase + 1, phase_name),
+        #     False,
+        #     LIGHT_GRAY,
+        # )
+        # self.screen.blit(phase_surf, (20, 100))
 
         if (
             self.phase_manager.current_phase in BOSS_TRIGGERS
@@ -1553,11 +1547,11 @@ class BloodLostGame:
         if self.phase_manager.current_phase < len(PHASE_THRESHOLDS) - 1:
             next_threshold = PHASE_THRESHOLDS[self.phase_manager.current_phase + 1]
             remaining = next_threshold - current_time
-            if remaining > 0:
-                next_phase_surf = self.resource_manager.fonts["small"].render(
-                    self.language_manager.get_text("next_phase").format(remaining), False, YELLOW
-                )
-                self.screen.blit(next_phase_surf, (20, 150))
+            # if remaining > 0:
+            #     next_phase_surf = self.resource_manager.fonts["small"].render(
+            #         self.language_manager.get_text("next_phase").format(remaining), False, YELLOW
+            #     )
+            #     self.screen.blit(next_phase_surf, (20, 150))
 
         if self.highscore_manager.is_new_record(current_time) and current_time > 0:
             if (self.new_record_timer // 30) % 2:
@@ -1580,11 +1574,7 @@ class BloodLostGame:
                 self.language_manager.get_text("reload").format(self.shoot_cooldown), False, (255, 200, 100)
             )
             self.screen.blit(cooldown_surf, (SCREEN_WIDTH - 150, 20))
-        else:
-            ready_surf = self.resource_manager.fonts["small"].render(
-                self.language_manager.get_text("ready_shoot"), False, (100, 255, 100)
-            )
-            self.screen.blit(ready_surf, (SCREEN_WIDTH - 150, 20))
+
 
         return current_time
 
@@ -1618,12 +1608,6 @@ class BloodLostGame:
         )
         title_rect = title_surf.get_rect(center=(400, 80))
         self.screen.blit(title_surf, title_rect)
-
-        subtitle_surf = self.resource_manager.fonts["medium"].render(
-            self.language_manager.get_text("subtitle"), False, LIGHT_GRAY
-        )
-        subtitle_rect = subtitle_surf.get_rect(center=(400, 120))
-        self.screen.blit(subtitle_surf, subtitle_rect)
 
         highscore_surf = self.resource_manager.fonts["medium"].render(
             self.language_manager.get_text("best_score").format(self.highscore_manager.highscore), False, GOLD
@@ -1665,22 +1649,6 @@ class BloodLostGame:
         )
         instruction_rect = instruction_surf.get_rect(center=(400, 450))
         self.screen.blit(instruction_surf, instruction_rect)
-
-        shoot_info = self.resource_manager.fonts["small"].render(
-            self.language_manager.get_text("shoot_info"),
-            False,
-            (100, 150, 255),
-        )
-        shoot_rect = shoot_info.get_rect(center=(400, 480))
-        self.screen.blit(shoot_info, shoot_rect)
-
-        whip_info = self.resource_manager.fonts["small"].render(
-            self.language_manager.get_text("whip_info"),
-            False,
-            (255, 150, 100),
-        )
-        whip_rect = whip_info.get_rect(center=(400, 500))
-        self.screen.blit(whip_info, whip_rect)
 
     def draw_highscores(self):
         self.screen.blit(self.resource_manager.sprites["menu_bg"], (0, 0))
@@ -1798,7 +1766,7 @@ class BloodLostGame:
         title_rect = title_surf.get_rect(center=(400, 100))
         self.screen.blit(title_surf, title_rect)
 
-        current_lang_text = "English" if self.language_manager.current_language == "en" else "Português"
+        current_lang_text = "English" if self.language_manager.current_language == "en" else "Portugues"
         
         settings_options = [
             self.language_manager.get_text("volume").format(int(self.volume * 100)),
