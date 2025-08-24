@@ -1200,7 +1200,7 @@ class BloodLostGame:
         rm.load_sound('game_over', 'music\\game-over-deep-male-voice-clip-352695.mp3', self.volume)
         rm.load_sound('menu_music', 'music\\main-menu.mp3', self.volume)
         rm.load_sound('boss_music', 'music\\Marble Gallery.mp3', self.volume)
-        rm.load_sound('shoot', 'sounds\\shoot.wav', self.volume * 0.5)  # Som de tiro
+        rm.load_sound('shoot', 'music\\knife.mp3', self.volume * 0.5)  # Som de tiro
         
         # NOVO: Sons do chicote
         rm.load_sound('whip_attack', 'music\\whip.mp3', self.volume * 0.7)
