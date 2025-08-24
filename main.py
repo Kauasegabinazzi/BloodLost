@@ -38,45 +38,50 @@ GRAY = (200, 200, 200)
 LIGHT_GRAY = (150, 150, 150)
 DARK_GRAY = (100, 100, 100)
 
-# ==================== CLASSE DE ESTADOS DO JOGADOR ====================
+# ==================== CLASSE DE ESTADOS DO JOGADOR CORRIGIDA ====================
 class PlayerAnimationState:
     def __init__(self):
         self.current_state = "idle"  # idle, walking, jumping, attacking
         self.state_timer = 0
-        self.attack_priority = True  # Ataque tem prioridade sobre movimento
+        self.frame_counter = 0
         
-    def update_state(self, player_rect, is_attacking, is_jumping, is_moving):
-        """Atualiza o estado da animação baseado nas ações do jogador"""
+    def update_state(self, is_attacking, is_jumping, is_moving):
+        """Atualiza o estado da animação baseado nas ações do jogador - CORRIGIDO"""
         self.state_timer += 1
+        self.frame_counter += 1
         
-        # Prioridade: ataque > pulo > movimento > idle
+        # Prioridade mais simples e clara: ataque > pulo > movimento > idle
         if is_attacking:
             if self.current_state != "attacking":
                 self.state_timer = 0
+                self.frame_counter = 0
             self.current_state = "attacking"
         elif is_jumping:
-            if self.current_state not in ["attacking"]:
-                if self.current_state != "jumping":
-                    self.state_timer = 0
-                self.current_state = "jumping"
+            if self.current_state != "jumping":
+                self.state_timer = 0
+                self.frame_counter = 0
+            self.current_state = "jumping"
         elif is_moving:
-            if self.current_state not in ["attacking", "jumping"]:
-                if self.current_state != "walking":
-                    self.state_timer = 0
-                self.current_state = "walking"
+            if self.current_state != "walking":
+                self.state_timer = 0
+                self.frame_counter = 0
+            self.current_state = "walking"
         else:
-            if self.current_state not in ["attacking", "jumping"]:
-                if self.current_state != "idle":
-                    self.state_timer = 0
-                self.current_state = "idle"
+            if self.current_state != "idle":
+                self.state_timer = 0
+                self.frame_counter = 0
+            self.current_state = "idle"
     
     def get_current_state(self):
         return self.current_state
     
     def get_state_timer(self):
         return self.state_timer
+    
+    def get_frame_counter(self):
+        return self.frame_counter
 
-# ==================== CLASSE DE ATAQUE COM CHICOTE ====================
+# ==================== CLASSE DE ATAQUE COM CHICOTE CORRIGIDA ====================
 class WhipAttack:
     def __init__(self, x, y, direction="right"):
         self.x = x
@@ -88,9 +93,6 @@ class WhipAttack:
         self.current_frame = 0
         self.animation_timer = 0
         self.animation_speed = 8  # Frames por estágio da animação
-        
-        # NOVO: Controle de sprite do jogador durante ataque
-        self.player_sprite_frame = 0
         
         # Hitboxes para cada frame da animação
         self.hitboxes = self.setup_hitboxes()
@@ -121,13 +123,12 @@ class WhipAttack:
             ]
     
     def update(self):
-        """Atualiza a animação do chicote - VERSÃO MELHORADA"""
+        """Atualiza a animação do chicote"""
         self.animation_timer += 1
         
         # Muda para próximo frame
         if self.animation_timer >= self.animation_speed:
             self.current_frame += 1
-            self.player_sprite_frame = self.current_frame  # Sincroniza com sprite do player
             self.animation_timer = 0
             
             # Ataque termina após 3 frames
@@ -169,7 +170,7 @@ class WhipAttack:
         return hit_enemies
     
     def draw(self, screen, whip_sprites=None):
-        """Desenha o chicote e efeitos visuais"""
+        """Desenha o chicote e efeitos visuais - VERSÃO CORRIGIDA SEM LINHA BRANCA"""
         if not self.active:
             return
             
@@ -186,27 +187,19 @@ class WhipAttack:
                     sprite = pygame.transform.flip(sprite, True, False)
                 screen.blit(sprite, (current_hitbox.x + shake_x, current_hitbox.y + shake_y))
             else:
-                # Desenho placeholder - linha que simula o chicote
-                start_pos = (self.x + shake_x, self.y + shake_y)
+                # REMOVIDO: Todo o código que desenha a linha branca placeholder
+                # Agora só desenha efeitos visuais sutis
                 
-                if self.direction == "right":
-                    end_x = current_hitbox.right
-                else:
-                    end_x = current_hitbox.left
+                # Efeito de partículas no local do ataque (opcional)
+                if self.current_frame == 2:  # Só no frame de máxima extensão
+                    # Pequeno efeito visual no final do chicote
+                    end_x = current_hitbox.right if self.direction == "right" else current_hitbox.left
+                    end_pos = (end_x + shake_x, self.y + shake_y)
                     
-                end_pos = (end_x + shake_x, self.y + shake_y)
-                
-                # Cor baseada no frame (mais brilhante no pico)
-                colors = [(200, 150, 100), (255, 200, 150), (255, 255, 200)]
-                color = colors[min(self.current_frame, len(colors)-1)]
-                
-                # Desenha linha do chicote
-                pygame.draw.line(screen, color, start_pos, end_pos, 4)
-                
-                # Efeito de brilho na ponta
-                if self.current_frame == 2:  # Frame de máxima extensão
-                    pygame.draw.circle(screen, (255, 255, 255), end_pos, 8)
-                    pygame.draw.circle(screen, color, end_pos, 6)
+                    # Pequeno círculo dourado para mostrar o impacto
+                    pygame.draw.circle(screen, (255, 215, 0), end_pos, 3)
+                    # Círculo menor branco no centro
+                    pygame.draw.circle(screen, (255, 255, 255), end_pos, 2)
 
 
 class PlayerAttackSystem:
@@ -226,9 +219,9 @@ class PlayerAttackSystem:
     def load_whip_sprites(self, resource_manager):
         """Carrega sprites do chicote"""
         sprite_paths = [
-            'sprites\\Player\\attack1.png',
-            'sprites\\Player\\attack2.png', 
-            'sprites\\Player\\attack3.png'
+            # 'sprites\\Player\\attack1.png',
+            # 'sprites\\Player\\attack2.png', 
+            #'sprites\\Player\\whip.png'
         ]
         
         for i, path in enumerate(sprite_paths):
@@ -259,6 +252,16 @@ class PlayerAttackSystem:
         self.attack_cooldown = self.attack_cooldown_max
         
         return True
+    
+    def is_attacking(self):
+        """Verifica se está atacando atualmente"""
+        return self.current_whip_attack and self.current_whip_attack.active
+    
+    def get_attack_frame(self):
+        """Retorna o frame atual do ataque (para sincronização com animação do player)"""
+        if self.current_whip_attack and self.current_whip_attack.active:
+            return self.current_whip_attack.current_frame
+        return 0
     
     def update(self, obstacles, sounds=None):
         """Atualiza sistema de ataque"""
@@ -1022,14 +1025,14 @@ class PhaseManager:
         return f'background_phase_{phase_index}'
 
 
-# ==================== CLASSE PRINCIPAL ATUALIZADA COM SISTEMA DE ANIMAÇÃO ====================
+# ==================== CLASSE PRINCIPAL CORRIGIDA ====================
 class BloodLostGame:
     def __init__(self):
         pygame.init()
         
         # Inicialização básica
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption('BloodLost - Shooting & Whip System Edition')
+        pygame.display.set_caption('BloodLost - Fixed Animation & Whip System')
         self.clock = pygame.time.Clock()
         
         # Managers
@@ -1039,7 +1042,7 @@ class BloodLostGame:
         self.phase_manager = PhaseManager()
         self.boss_manager = BossManager()
         
-        # NOVO: Sistema de estados do jogador
+        # CORRIGIDO: Sistema de estados do jogador
         self.player_animation_state = PlayerAnimationState()
         
         # Estados do jogo
@@ -1055,14 +1058,15 @@ class BloodLostGame:
         # Variáveis do jogador
         self.player_gravity = 0
         
-        # NOVO: Variáveis para controle de movimento
+        # CORRIGIDO: Variáveis para controle de movimento
         self.player_is_moving = False
+        self.last_move_direction = "right"  # Para determinar direção do ataque
         
         # Sistema de projéteis do jogador
         self.player_projectiles = []
         self.shoot_cooldown = 0  # Cooldown entre tiros
         
-        # NOVO: Sistema de ataque com chicote
+        # CORRIGIDO: Sistema de ataque com chicote
         self.attack_system = PlayerAttackSystem()
         
         # Sistema de invulnerabilidade do player
@@ -1125,29 +1129,32 @@ class BloodLostGame:
             fallback_surface.fill((50, 20, 50))
             rm.sprites['gameover_bg'] = fallback_surface
         
-        # Player sprites - EXPANDIDO
+        # Player sprites - CORRIGIDO
         rm.load_sprite('player_idle', 'sprites\\Player\\walk1.png', HERO_SCALE)
         rm.load_sprite('player_walk1', 'sprites\\Player\\walk1.png', HERO_SCALE)
         rm.load_sprite('player_walk2', 'sprites\\Player\\wal2.png', HERO_SCALE)
         rm.load_sprite('player_walk3', 'sprites\\Player\\walk3.png', HERO_SCALE)
         rm.load_sprite('player_jump', 'sprites\\Player\\jump.png', HERO_SCALE)
         
-        # NOVO: Sprites de ataque
+        # CORRIGIDO: Sprites de ataque
         rm.load_sprite('player_attack1', 'sprites\\Player\\attack1.png', HERO_SCALE)
         rm.load_sprite('player_attack2', 'sprites\\Player\\attack2.png', HERO_SCALE) 
         rm.load_sprite('player_attack3', 'sprites\\Player\\attack3.png', HERO_SCALE)
         
         # Se os sprites de ataque não existirem, usa sprites alternativos
         try:
-            # Tenta carregar sprites específicos de ataque
-            pass
+            # Testa se os sprites de ataque foram carregados corretamente
+            test_attack = rm.sprites.get('player_attack1')
+            if test_attack is None or test_attack.get_width() == 50:  # É placeholder
+                raise Exception("Sprites de ataque não encontrados")
         except:
-            # Fallback: usa sprites existentes com efeito visual
+            # Fallback: usa sprites existentes
+            print("Usando sprites de walk como fallback para ataque")
             rm.sprites['player_attack1'] = rm.sprites['player_walk1']
             rm.sprites['player_attack2'] = rm.sprites['player_walk2']
             rm.sprites['player_attack3'] = rm.sprites['player_walk3']
         
-        # NOVO: Carrega sprites do chicote
+        # CORRIGIDO: Carrega sprites do chicote
         self.attack_system.load_whip_sprites(rm)
         
         # Boss sprites (usando inimigos existentes como placeholder)
@@ -1178,16 +1185,16 @@ class BloodLostGame:
                 frames.append(rm.load_sprite(sprite_name, path, ENEMY_SCALE))
             self.animation_manager.add_animation(enemy_name, frames)
         
-        # Player animations - EXPANDIDO
+        # CORRIGIDO: Player animations
         player_walk_frames = [
-            rm.sprites['player_idle'],
             rm.sprites['player_walk1'],
             rm.sprites['player_walk2'],
-            rm.sprites['player_walk3']
+            rm.sprites['player_walk3'],
+            rm.sprites['player_walk2']  # Volta ao meio para suavizar animação
         ]
         self.animation_manager.add_animation('player_walk', player_walk_frames)
         
-        # NOVO: Animação de ataque
+        # CORRIGIDO: Animação de ataque
         player_attack_frames = [
             rm.sprites['player_attack1'],
             rm.sprites['player_attack2'],
@@ -1202,7 +1209,7 @@ class BloodLostGame:
         rm.load_sound('boss_music', 'music\\Marble Gallery.mp3', self.volume)
         rm.load_sound('shoot', 'music\\knife.mp3', self.volume * 0.5)  # Som de tiro
         
-        # NOVO: Sons do chicote
+        # CORRIGIDO: Sons do chicote
         rm.load_sound('whip_attack', 'music\\whip.mp3', self.volume * 0.7)
         rm.load_sound('whip_hit', 'music\\whipHit.mp3', self.volume * 0.6)
         
@@ -1284,43 +1291,41 @@ class BloodLostGame:
         return True
     
     def update_player_animation(self):
-        """Atualiza animação do jogador - VERSÃO MELHORADA"""
+        """Atualiza animação do jogador - VERSÃO CORRIGIDA"""
         # Verifica estados do jogador
-        is_attacking = (self.attack_system.current_whip_attack and 
-                       self.attack_system.current_whip_attack.active)
+        is_attacking = self.attack_system.is_attacking()
         is_jumping = self.player_rect.bottom < GROUND_Y
         is_moving = self.player_is_moving
         
         # Atualiza estado da animação
-        self.player_animation_state.update_state(
-            self.player_rect, is_attacking, is_jumping, is_moving
-        )
+        self.player_animation_state.update_state(is_attacking, is_jumping, is_moving)
         
         current_state = self.player_animation_state.get_current_state()
         
-        # Escolhe sprite baseado no estado
-        if current_state == "attacking":
-            # Durante ataque, usa animação de ataque sincronizada com o chicote
-            if is_attacking:
-                attack_frame = self.attack_system.current_whip_attack.current_frame
-                attack_sprites = ['player_attack1', 'player_attack2', 'player_attack3']
-                
-                if attack_frame < len(attack_sprites):
-                    sprite_name = attack_sprites[attack_frame]
-                    self.current_player_surface = self.resource_manager.sprites[sprite_name]
-                else:
-                    self.current_player_surface = self.resource_manager.sprites['player_attack3']
-            else:
-                # Ataque terminou, volta ao estado normal
-                self.current_player_surface = self.resource_manager.sprites['player_idle']
+        # Escolhe sprite baseado no estado - CORRIGIDO
+        if current_state == "attacking" and is_attacking:
+            # Durante ataque, usa animação sincronizada com o chicote
+            attack_frame = self.attack_system.get_attack_frame()
+            
+            # Usa animação baseada no frame do chicote
+            if attack_frame == 0:
+                self.current_player_surface = self.resource_manager.sprites['player_attack1']
+            elif attack_frame == 1:
+                self.current_player_surface = self.resource_manager.sprites['player_attack2']
+            else:  # attack_frame >= 2
+                self.current_player_surface = self.resource_manager.sprites['player_attack3']
                 
         elif current_state == "jumping":
             self.current_player_surface = self.resource_manager.sprites['player_jump']
             
-        elif current_state == "walking":
-            # Usa animação de caminhada
-            self.current_player_surface = self.animation_manager.update('player_walk', 0.1)
-            
+        elif current_state == "walking" and is_moving:
+            # CORRIGIDO: Usa animação de caminhada com velocidade adequada
+            walk_sprite = self.animation_manager.update('player_walk', 0.2)  # Velocidade aumentada
+            if walk_sprite:
+                self.current_player_surface = walk_sprite
+            else:
+                self.current_player_surface = self.resource_manager.sprites['player_walk1']
+                
         else:  # idle
             self.current_player_surface = self.resource_manager.sprites['player_idle']
     
@@ -1359,11 +1364,16 @@ class BloodLostGame:
         self.player_projectiles = active_projectiles
     
     def handle_whip_attack(self):
-        """Gerencia ataque com chicote - VERSÃO ATUALIZADA"""
-        # Determina direção baseada na última movimentação ou input atual
+        """Gerencia ataque com chicote - VERSÃO CORRIGIDA"""
+        # Usa a última direção de movimento ou verifica input atual
         keys = pygame.key.get_pressed()
-        direction = "right"  # Padrão
+    def handle_whip_attack(self):
+        """Gerencia ataque com chicote - VERSÃO CORRIGIDA"""
+        # Usa a última direção de movimento ou verifica input atual
+        keys = pygame.key.get_pressed()
+        direction = self.last_move_direction  # Padrão baseado no último movimento
         
+        # Sobrescreve se estiver pressionando direção específica
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             direction = "left"
         elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
@@ -1371,10 +1381,6 @@ class BloodLostGame:
         
         # Inicia ataque
         if self.attack_system.start_whip_attack(self.player_rect, direction):
-            # Força estado de ataque
-            self.player_animation_state.current_state = "attacking"
-            self.player_animation_state.state_timer = 0
-            
             # Toca som de ataque
             if 'whip_attack' in self.resource_manager.sounds:
                 self.resource_manager.sounds['whip_attack'].play()
@@ -1474,7 +1480,7 @@ class BloodLostGame:
         self.screen.blit(title_surf, title_rect)
         
         # Subtítulo
-        subtitle_surf = self.resource_manager.fonts['medium'].render('Shooting & Whip System Edition', False, LIGHT_GRAY)
+        subtitle_surf = self.resource_manager.fonts['medium'].render('Fixed Animation & Whip System', False, LIGHT_GRAY)
         subtitle_rect = subtitle_surf.get_rect(center=(400, 120))
         self.screen.blit(subtitle_surf, subtitle_rect)
         
@@ -1807,7 +1813,7 @@ class BloodLostGame:
             # Tiro com X
             elif event.key == pygame.K_x:
                 self.shoot_projectile()
-            # NOVO: Ataque com chicote com Z
+            # CORRIGIDO: Ataque com chicote com Z
             elif event.key == pygame.K_z:
                 self.handle_whip_attack()
             elif event.key == pygame.K_ESCAPE:
@@ -1833,13 +1839,14 @@ class BloodLostGame:
         self.player_projectiles.clear()
         self.shoot_cooldown = 0
         
-        # NOVO: Reseta sistema de ataque
+        # CORRIGIDO: Reseta sistema de ataque
         self.attack_system = PlayerAttackSystem()
         self.attack_system.load_whip_sprites(self.resource_manager)
         
-        # NOVO: Reseta sistema de animação do jogador
+        # CORRIGIDO: Reseta sistema de animação do jogador
         self.player_animation_state = PlayerAnimationState()
         self.player_is_moving = False
+        self.last_move_direction = "right"  # Direção padrão
         
         self.start_time = int(pygame.time.get_ticks() / 1000)
         self.new_record_timer = 0
@@ -1874,9 +1881,10 @@ class BloodLostGame:
         self.player_invulnerable_timer = 0
         self.player_damaged = False
         
-        # NOVO: Reseta sistema de animação
+        # CORRIGIDO: Reseta sistema de animação
         self.player_animation_state = PlayerAnimationState()
         self.player_is_moving = False
+        self.last_move_direction = "right"
         
         # Reseta o gerenciador de fases
         self.phase_manager = PhaseManager()
@@ -1900,10 +1908,10 @@ class BloodLostGame:
         if background_name in self.resource_manager.sprites:
             return self.resource_manager.sprites[background_name]
         else:
-            return self.resource_manager.sprites['background_phase_0']  # Fallback
+             return self.resource_manager.sprites['background_phase_0']  # Fallback
     
     def update_game(self):
-        """Atualiza lógica do jogo - VERSÃO ATUALIZADA"""
+        """Atualiza lógica do jogo - VERSÃO CORRIGIDA SEM DUPLICAÇÃO"""
         if self.game_state == "playing":
             # Reduz timer de invulnerabilidade do player
             if self.player_invulnerable_timer > 0:
@@ -1921,29 +1929,27 @@ class BloodLostGame:
                 self.music_playing = False
                 self.boss_music_playing = True
             
-            # Processar input de movimento durante toda a gameplay
+            # CORRIGIDO: Processar input de movimento durante toda a gameplay
             keys = pygame.key.get_pressed()
             
-            # NOVO: Rastreia se está se movendo
+            # CORRIGIDO: Rastreia se está se movendo e direção
             self.player_is_moving = False
             
-            # Movimento horizontal (sempre permitido, mas não durante ataque em certos casos)
-            is_attacking = (self.attack_system.current_whip_attack and 
-                           self.attack_system.current_whip_attack.active)
-            
-            # Permite movimento mesmo durante ataque (para maior fluidez)
+            # Movimento horizontal sempre permitido
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
                 self.player_rect.x -= 5
                 self.player_is_moving = True
+                self.last_move_direction = "left"
             if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                 self.player_rect.x += 5
                 self.player_is_moving = True
+                self.last_move_direction = "right"
             
             # Tiro contínuo com X pressionado
             if keys[pygame.K_x]:
                 self.shoot_projectile()
             
-            # NOVO: Ataque contínuo com Z pressionado
+            # CORRIGIDO: Ataque contínuo com Z pressionado
             if keys[pygame.K_z]:
                 self.handle_whip_attack()
             
@@ -1956,7 +1962,7 @@ class BloodLostGame:
             # Atualiza projéteis do jogador
             self.update_projectiles()
             
-            # NOVO: Atualiza sistema de ataque com chicote
+            # CORRIGIDO: Atualiza sistema de ataque com chicote
             if not self.boss_manager.is_boss_active():
                 self.attack_system.update(self.obstacle_list, self.resource_manager.sounds)
             
@@ -2055,32 +2061,54 @@ class BloodLostGame:
             if self.player_rect.bottom >= GROUND_Y:
                 self.player_rect.bottom = GROUND_Y
             
-            # NOVO: Atualiza animação do jogador com sistema de estados
+            # CORRIGIDO: Atualiza animação do jogador com sistema de estados
             self.update_player_animation()
             
-            # Renderização do player com estados corretos
-            if self.player_invulnerable_timer > 0:
-                # Pisca o player durante invulnerabilidade
-                if (self.player_invulnerable_timer // 5) % 2:
-                    temp_surface = self.current_player_surface.copy()
-                    temp_surface.set_alpha(128)
-                    self.screen.blit(temp_surface, self.player_rect)
-                else:
-                    self.screen.blit(self.current_player_surface, self.player_rect)
-            else:
-                self.screen.blit(self.current_player_surface, self.player_rect)
-            
-            # NOVO: Desenha sistema de ataque com chicote
-            self.attack_system.draw(self.screen)
+            # NOVO: Renderização única e organizada do player
+            self.render_player_and_effects()
             
             # Desenha boss (por cima de tudo)
             self.boss_manager.draw(self.screen, self.boss_sprites)
             
-            # NOVO: Desenha UI do sistema de ataque
+            # Desenha UI do sistema de ataque
             self.attack_system.draw_ui(self.screen, self.resource_manager.fonts)
             
             # Desenha notificação de mudança de fase (por cima de tudo)
             self.draw_phase_notification()
+
+    def render_player_and_effects(self):
+        """Renderiza player e todos os efeitos de uma vez só - EVITA DUPLICAÇÃO"""
+        # 1. Desenha o player primeiro
+        self.draw_player()
+        
+        # 2. Desenha efeitos do chicote (sem linha branca)
+        self.attack_system.draw(self.screen)
+
+    def draw_player(self):
+        """Desenha o jogador - MÉTODO CENTRALIZADO MELHORADO"""
+        if self.player_invulnerable_timer > 0:
+            # Pisca o player durante invulnerabilidade
+            if (self.player_invulnerable_timer // 5) % 2:
+                temp_surface = self.current_player_surface.copy()
+                temp_surface.set_alpha(128)
+                self.screen.blit(temp_surface, self.player_rect)
+            else:
+                self.screen.blit(self.current_player_surface, self.player_rect)
+        else:
+            # Player normal
+            self.screen.blit(self.current_player_surface, self.player_rect)
+    
+    def draw_debug_info(self):
+        """Desenha informações de debug - OPCIONAL PARA TESTES"""
+        if hasattr(self, 'debug_mode') and self.debug_mode:
+            # Desenha hitbox do player (opcional para debug)
+            pygame.draw.rect(self.screen, (0, 255, 0), self.player_rect, 2)
+            
+            # Desenha hitbox do chicote (opcional para debug)
+            if self.attack_system.current_whip_attack and self.attack_system.current_whip_attack.active:
+                hitbox = self.attack_system.current_whip_attack.get_current_hitbox()
+                if hitbox:
+                    pygame.draw.rect(self.screen, (255, 0, 0), hitbox, 2)
     
     def stop_all_music(self):
         """Para toda a música"""
@@ -2155,54 +2183,6 @@ class BloodLostGame:
         
         pygame.quit()
         exit()
-
-
-# ==================== SISTEMA AVANÇADO DE ANIMAÇÃO ADICIONAL ====================
-class PlayerAnimationSystem:
-    """Sistema mais avançado para animações complexas"""
-    def __init__(self):
-        self.states = {
-            "idle": {"priority": 0, "loop": True},
-            "walking": {"priority": 1, "loop": True}, 
-            "jumping": {"priority": 2, "loop": False},
-            "attacking": {"priority": 3, "loop": False},
-            "hurt": {"priority": 4, "loop": False}
-        }
-        self.current_state = "idle"
-        self.previous_state = "idle"
-        self.state_timer = 0
-        self.animation_speed = {"idle": 0.05, "walking": 0.1, "attacking": 0.2, "jumping": 0.1}
-    
-    def request_state_change(self, new_state):
-        """Solicita mudança de estado respeitando prioridades"""
-        if new_state in self.states:
-            current_priority = self.states[self.current_state]["priority"]
-            new_priority = self.states[new_state]["priority"]
-            
-            # Muda estado se a prioridade for maior ou igual
-            if new_priority >= current_priority:
-                if self.current_state != new_state:
-                    self.previous_state = self.current_state
-                    self.current_state = new_state
-                    self.state_timer = 0
-                    return True
-        return False
-    
-    def update(self, animation_manager):
-        """Atualiza animação baseada no estado atual"""
-        self.state_timer += 1
-        
-        # Se animação não loop terminou, volta ao estado anterior
-        if not self.states[self.current_state]["loop"]:
-            max_frames = len(animation_manager.animations.get(f'player_{self.current_state}', [1]))
-            speed = self.animation_speed.get(self.current_state, 0.1)
-            
-            if self.state_timer * speed >= max_frames:
-                self.request_state_change("idle")
-        
-        # Retorna sprite atual
-        animation_name = f'player_{self.current_state}'
-        return animation_manager.update(animation_name, self.animation_speed.get(self.current_state, 0.1))
 
 
 # ==================== FUNÇÃO PRINCIPAL ====================
