@@ -33,7 +33,7 @@ PHASE_NAMES = {
         "Biblioteca Antiga",
         "Câmara do Vampiro",
         "Batalha Final",
-    ]
+    ],
 }
 
 BOSS_TRIGGERS = {2: "vampire", 4: "demon"}
@@ -117,8 +117,8 @@ TEXTS = {
             "dark_knight": "DARK KNIGHT",
             "castle_explorer": "CASTLE EXPLORER",
             "brave_warrior": "BRAVE WARRIOR",
-            "novice_hunter": "NOVICE HUNTER"
-        }
+            "novice_hunter": "NOVICE HUNTER",
+        },
     },
     "pt": {
         "title": "BloodLost",
@@ -189,9 +189,9 @@ TEXTS = {
             "dark_knight": "CAVALEIRO SOMBRIO",
             "castle_explorer": "EXPLORADOR DO CASTELO",
             "brave_warrior": "GUERREIRO CORAJOSO",
-            "novice_hunter": "CAÇADOR NOVATO"
-        }
-    }
+            "novice_hunter": "CAÇADOR NOVATO",
+        },
+    },
 }
 
 
@@ -229,7 +229,7 @@ class PlayerAnimationState:
 
     def get_frame_counter(self):
         return self.frame_counter
-    
+
 
 class WhipAttack:
     def __init__(self, x, y, direction="right"):
@@ -349,7 +349,7 @@ class PlayerAttackSystem:
         self.enemies_defeated = 0
         self.combo_counter = 0
         self.combo_timer = 0
-        
+
         self.language_manager = language_manager
 
     def load_whip_sprites(self, resource_manager):
@@ -360,7 +360,6 @@ class PlayerAttackSystem:
                 sprite = resource_manager.load_sprite(f"whip_{i}", path, 2.0)
                 self.whip_sprites.append(sprite)
             except:
-                print(f"Sprite do chicote {i} não encontrado: {path}")
                 self.whip_sprites.append(None)
 
     def can_attack(self):
@@ -425,22 +424,16 @@ class PlayerAttackSystem:
 
     def draw_ui(self, screen, fonts):
         lang = self.language_manager.current_language
-        
-        # if self.attack_cooldown > 0:
-        #     cooldown_text = self.language_manager.get_text("whip_cooldown").format(self.attack_cooldown)
-        #     cooldown_surf = fonts["small"].render(cooldown_text, False, (255, 200, 100))
-        #     screen.blit(cooldown_surf, (SCREEN_WIDTH - 200, 50))
 
-        # if self.enemies_defeated > 0:
-        #     kills_text = self.language_manager.get_text("enemies_defeated").format(self.enemies_defeated)
-        #     kills_surf = fonts["small"].render(kills_text, False, (200, 200, 200))
-        #     screen.blit(kills_surf, (SCREEN_WIDTH - 200, 80))
+
 
         if self.combo_counter > 1:
             combo_color = (
                 (255, 100, 100) if self.combo_counter >= 5 else (255, 200, 100)
             )
-            combo_text = self.language_manager.get_text("combo").format(self.combo_counter)
+            combo_text = self.language_manager.get_text("combo").format(
+                self.combo_counter
+            )
             combo_surf = fonts["medium"].render(combo_text, False, combo_color)
             combo_rect = combo_surf.get_rect(center=(SCREEN_WIDTH // 2, 100))
 
@@ -451,29 +444,40 @@ class PlayerAttackSystem:
             screen.blit(combo_surf, combo_rect)
 
 
-class PlayerProjectile:
-    def __init__(self, x, y):
+class KnifeProjectile:
+    def __init__(self, x, y, knife_sprite=None):
         self.x = x
         self.y = y
-        self.speed = 8
-        self.width = 12
-        self.height = 6
+        self.speed = 10
+        self.width = 25
+        self.height = 8
         self.rect = pygame.Rect(x, y, self.width, self.height)
         self.active = True
+        self.rotation = 0
+        self.rotation_speed = 15
+        self.knife_sprite = knife_sprite
+        self.original_sprite = knife_sprite
 
     def update(self):
+        old_x = self.x
         self.x += self.speed
         self.rect.x = self.x
+
+        # Rotaciona a faca enquanto voa
+        self.rotation += self.rotation_speed
+        if self.rotation >= 360:
+            self.rotation = 0
 
         if self.x > SCREEN_WIDTH + 50:
             self.active = False
 
     def draw(self, screen):
-        pygame.draw.ellipse(screen, (100, 150, 255), self.rect)
-        core_rect = pygame.Rect(
-            self.rect.x + 2, self.rect.y + 1, self.width - 4, self.height - 2
-        )
-        pygame.draw.ellipse(screen, (200, 220, 255), core_rect)
+
+        if self.knife_sprite and self.original_sprite:
+            sprite_rect = self.original_sprite.get_rect(
+                center=(self.x + self.width // 2, self.y + self.height // 2)
+            )
+        screen.blit(self.original_sprite, sprite_rect)
 
 
 class BossBattle:
@@ -840,7 +844,9 @@ class BossBattle:
         )
 
         font = pygame.font.Font(None, 24)
-        hp_text = self.language_manager.get_text("boss_hp").format(self.boss_hp, self.max_hp)
+        hp_text = self.language_manager.get_text("boss_hp").format(
+            self.boss_hp, self.max_hp
+        )
         hp_surface = font.render(hp_text, True, WHITE)
         hp_rect = hp_surface.get_rect(
             center=(self.screen_width // 2, bar_y + bar_height // 2)
@@ -913,7 +919,9 @@ class BossManager:
 
     def start_boss_battle(self, phase):
         boss_type = BOSS_TRIGGERS.get(phase, "vampire")
-        self.current_boss = BossBattle(boss_type, SCREEN_WIDTH, SCREEN_HEIGHT, self.language_manager)
+        self.current_boss = BossBattle(
+            boss_type, SCREEN_WIDTH, SCREEN_HEIGHT, self.language_manager
+        )
         self.boss_reward_given = False
         return True
 
@@ -961,12 +969,16 @@ class BossManager:
 
         if self.boss_victory_timer > 0:
             font = pygame.font.Font(None, 48)
-            victory_text = font.render(self.language_manager.get_text("boss_defeated"), True, GOLD)
+            victory_text = font.render(
+                self.language_manager.get_text("boss_defeated"), True, GOLD
+            )
             victory_rect = victory_text.get_rect(
                 center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
             )
 
-            shadow_text = font.render(self.language_manager.get_text("boss_defeated"), True, BLACK)
+            shadow_text = font.render(
+                self.language_manager.get_text("boss_defeated"), True, BLACK
+            )
             shadow_rect = shadow_text.get_rect(
                 center=(SCREEN_WIDTH // 2 + 2, SCREEN_HEIGHT // 2 + 2)
             )
@@ -979,7 +991,7 @@ class LanguageManager:
     def __init__(self):
         self.current_language = "pt"
         self.load_settings()
-    
+
     def load_settings(self):
         try:
             if os.path.exists("language_settings.json"):
@@ -988,7 +1000,7 @@ class LanguageManager:
                     self.current_language = data.get("language", "pt")
         except:
             pass
-    
+
     def save_settings(self):
         try:
             data = {"language": self.current_language}
@@ -996,15 +1008,15 @@ class LanguageManager:
                 json.dump(data, f)
         except:
             pass
-    
+
     def set_language(self, language):
         if language in TEXTS:
             self.current_language = language
             self.save_settings()
-    
+
     def get_text(self, key):
         return TEXTS.get(self.current_language, TEXTS["pt"]).get(key, key)
-    
+
     def get_phase_name(self, phase_index):
         if 0 <= phase_index < len(PHASE_NAMES[self.current_language]):
             return PHASE_NAMES[self.current_language][phase_index]
@@ -1066,7 +1078,6 @@ class ResourceManager:
             self.sprites[name] = sprite
             return sprite
         except:
-            print(f"Erro ao carregar sprite: {path}")
             placeholder = pygame.Surface((50, 50))
             placeholder.fill((255, 0, 255))
             self.sprites[name] = placeholder
@@ -1079,7 +1090,7 @@ class ResourceManager:
             self.sounds[name] = sound
             return sound
         except:
-            print(f"Erro ao carregar som: {path}")
+
             return None
 
     def load_font(self, name, path, size):
@@ -1088,7 +1099,7 @@ class ResourceManager:
             self.fonts[name] = font
             return font
         except:
-            print(f"Erro ao carregar fonte: {path}")
+
             return pygame.font.Font(None, size)
 
 
@@ -1223,7 +1234,7 @@ class BloodLostGame:
             background_name = f"background_phase_{i}"
             loaded_sprite = rm.load_sprite(background_name, path, SCALE_FACTOR)
             if loaded_sprite is None and i > 0:
-                print(f"Usando background padrão para fase {i}")
+
                 rm.sprites[background_name] = rm.sprites["background_phase_0"]
 
         rm.load_sprite("menu_bg", "sprites\\Background\\loading.webp", SCALE_FACTOR)
@@ -1256,7 +1267,7 @@ class BloodLostGame:
             if test_attack is None or test_attack.get_width() == 50:
                 raise Exception("Sprites de ataque não encontrados")
         except:
-            print("Usando sprites de walk como fallback para ataque")
+
             rm.sprites["player_attack1"] = rm.sprites["player_walk1"]
             rm.sprites["player_attack2"] = rm.sprites["player_walk2"]
             rm.sprites["player_attack3"] = rm.sprites["player_walk3"]
@@ -1351,7 +1362,6 @@ class BloodLostGame:
         )
         rm.load_sound("menu_music", "music\\main-menu.mp3", self.volume)
         rm.load_sound("boss_music", "music\\Marble Gallery.mp3", self.volume)
-        rm.load_sound("shoot", "music\\knife.mp3", self.volume * 0.5)
 
         rm.load_sound("whip_attack", "music\\whip.mp3", self.volume * 0.7)
         rm.load_sound("whip_hit", "music\\whipHit.mp3", self.volume * 0.6)
@@ -1360,6 +1370,8 @@ class BloodLostGame:
         rm.load_font("large", "fonts\\Pixeltype.ttf", 50)
         rm.load_font("medium", "fonts\\Pixeltype.ttf", 40)
         rm.load_font("small", "fonts\\Pixeltype.ttf", 25)
+        rm.load_sprite("knife", "sprites\\Item\\faquinha2.png", 1.5)
+        rm.load_sound("shoot", "music\\knife.mp3", self.volume * 0.5)
 
     def setup_timers(self):
         self.obstacle_timer = pygame.USEREVENT + 1
@@ -1433,7 +1445,7 @@ class BloodLostGame:
 
     def update_player_animation(self):
         keys = pygame.key.get_pressed()
-        
+
         is_attacking = self.attack_system.is_attacking()
         is_jumping = self.player_rect.bottom < GROUND_Y
 
@@ -1444,33 +1456,48 @@ class BloodLostGame:
         if current_state == "attacking" and is_attacking:
             attack_frame = self.attack_system.get_attack_frame()
             if attack_frame == 0:
-                self.current_player_surface = self.resource_manager.sprites["player_attack1"]
+                self.current_player_surface = self.resource_manager.sprites[
+                    "player_attack1"
+                ]
             elif attack_frame == 1:
-                self.current_player_surface = self.resource_manager.sprites["player_attack2"]
+                self.current_player_surface = self.resource_manager.sprites[
+                    "player_attack2"
+                ]
             else:
-                self.current_player_surface = self.resource_manager.sprites["player_attack3"]
-                
+                self.current_player_surface = self.resource_manager.sprites[
+                    "player_attack3"
+                ]
+
         elif current_state == "jumping":
             self.current_player_surface = self.resource_manager.sprites["player_jump"]
-            
+
         else:
             walk_sprite = self.animation_manager.update("player_walk", 0.05)
             if walk_sprite:
                 self.current_player_surface = walk_sprite
             else:
-                self.current_player_surface = self.resource_manager.sprites["player_walk1"]
+                self.current_player_surface = self.resource_manager.sprites[
+                    "player_walk1"
+                ]
 
-    def shoot_projectile(self):
+    def throw_knife(self):
+
         if self.shoot_cooldown <= 0:
-            projectile_x = self.player_rect.right
-            projectile_y = self.player_rect.centery - 3
 
-            new_projectile = PlayerProjectile(projectile_x, projectile_y)
+            # Coordenadas mais precisas
+            projectile_x = self.player_rect.centerx + 20  # Um pouco à frente do player
+            projectile_y = self.player_rect.centery - 4
+
+            knife_sprite = self.resource_manager.sprites.get("knife")
+
+            new_projectile = KnifeProjectile(projectile_x, projectile_y, knife_sprite)
             self.player_projectiles.append(new_projectile)
 
-            self.shoot_cooldown = 15
+            self.shoot_cooldown = 20
 
+            # CORREÇÃO DO SOM:
             if "shoot" in self.resource_manager.sounds:
+
                 self.resource_manager.sounds["shoot"].play()
 
     def update_projectiles(self):
@@ -1483,9 +1510,13 @@ class BloodLostGame:
 
             if projectile.active:
                 active_projectiles.append(projectile)
-                projectile.draw(self.screen)
 
         self.player_projectiles = active_projectiles
+
+    def draw_projectiles(self):
+        for projectile in self.player_projectiles:
+            if projectile.active:
+                projectile.draw(self.screen)
 
     def handle_whip_attack(self):
         keys = pygame.key.get_pressed()
@@ -1517,17 +1548,13 @@ class BloodLostGame:
                 highscore_color = YELLOW
 
         highscore_surf = self.resource_manager.fonts["small"].render(
-            self.language_manager.get_text("best").format(self.highscore_manager.highscore), False, highscore_color
+            self.language_manager.get_text("best").format(
+                self.highscore_manager.highscore
+            ),
+            False,
+            highscore_color,
         )
         self.screen.blit(highscore_surf, (20, 70))
-
-        # phase_name = self.phase_manager.get_phase_name()
-        # phase_surf = self.resource_manager.fonts["small"].render(
-        #     self.language_manager.get_text("phase").format(self.phase_manager.current_phase + 1, phase_name),
-        #     False,
-        #     LIGHT_GRAY,
-        # )
-        # self.screen.blit(phase_surf, (20, 100))
 
         if (
             self.phase_manager.current_phase in BOSS_TRIGGERS
@@ -1547,11 +1574,6 @@ class BloodLostGame:
         if self.phase_manager.current_phase < len(PHASE_THRESHOLDS) - 1:
             next_threshold = PHASE_THRESHOLDS[self.phase_manager.current_phase + 1]
             remaining = next_threshold - current_time
-            # if remaining > 0:
-            #     next_phase_surf = self.resource_manager.fonts["small"].render(
-            #         self.language_manager.get_text("next_phase").format(remaining), False, YELLOW
-            #     )
-            #     self.screen.blit(next_phase_surf, (20, 150))
 
         if self.highscore_manager.is_new_record(current_time) and current_time > 0:
             if (self.new_record_timer // 30) % 2:
@@ -1564,17 +1586,12 @@ class BloodLostGame:
         if self.player_invulnerable_timer > 0:
             if (self.player_invulnerable_timer // 10) % 2:
                 invul_surf = self.resource_manager.fonts["small"].render(
-                    self.language_manager.get_text("invulnerable"), False, (100, 255, 100)
+                    self.language_manager.get_text("invulnerable"),
+                    False,
+                    (100, 255, 100),
                 )
                 invul_rect = invul_surf.get_rect(center=(400, 200))
                 self.screen.blit(invul_surf, invul_rect)
-
-        if self.shoot_cooldown > 0:
-            cooldown_surf = self.resource_manager.fonts["small"].render(
-                self.language_manager.get_text("reload").format(self.shoot_cooldown), False, (255, 200, 100)
-            )
-            self.screen.blit(cooldown_surf, (SCREEN_WIDTH - 150, 20))
-
 
         return current_time
 
@@ -1586,7 +1603,9 @@ class BloodLostGame:
             notification_rect = notification_surface.get_rect(center=(400, 200))
             self.screen.blit(notification_surface, notification_rect)
 
-            phase_text = self.language_manager.get_text("phase").format(self.phase_manager.current_phase + 1, "")
+            phase_text = self.language_manager.get_text("phase").format(
+                self.phase_manager.current_phase + 1, ""
+            )
             phase_surf = self.resource_manager.fonts["large"].render(
                 phase_text, False, GOLD
             )
@@ -1610,7 +1629,11 @@ class BloodLostGame:
         self.screen.blit(title_surf, title_rect)
 
         highscore_surf = self.resource_manager.fonts["medium"].render(
-            self.language_manager.get_text("best_score").format(self.highscore_manager.highscore), False, GOLD
+            self.language_manager.get_text("best_score").format(
+                self.highscore_manager.highscore
+            ),
+            False,
+            GOLD,
         )
         highscore_rect = highscore_surf.get_rect(center=(400, 160))
         self.screen.blit(highscore_surf, highscore_rect)
@@ -1619,9 +1642,9 @@ class BloodLostGame:
             self.language_manager.get_text("start"),
             self.language_manager.get_text("highscores"),
             self.language_manager.get_text("settings"),
-            self.language_manager.get_text("quit")
+            self.language_manager.get_text("quit"),
         ]
-        
+
         for i, option in enumerate(menu_options):
             color = YELLOW if i == self.selected_option else GRAY
 
@@ -1665,14 +1688,20 @@ class BloodLostGame:
             self.screen.blit(trophy_surf, trophy_rect)
 
             record_surf = self.resource_manager.fonts["medium"].render(
-                self.language_manager.get_text("best_score_display").format(self.highscore_manager.highscore), False, GOLD
+                self.language_manager.get_text("best_score_display").format(
+                    self.highscore_manager.highscore
+                ),
+                False,
+                GOLD,
             )
             record_rect = record_surf.get_rect(center=(400, 200))
             self.screen.blit(record_surf, record_rect)
 
             defeated_count = len(self.boss_manager.defeated_bosses)
             total_bosses = len(BOSS_TRIGGERS)
-            boss_text = self.language_manager.get_text("bosses_defeated").format(defeated_count, total_bosses)
+            boss_text = self.language_manager.get_text("bosses_defeated").format(
+                defeated_count, total_bosses
+            )
             boss_surf = self.resource_manager.fonts["small"].render(
                 boss_text, False, (200, 100, 200)
             )
@@ -1683,7 +1712,9 @@ class BloodLostGame:
                 hasattr(self, "attack_system")
                 and self.attack_system.enemies_defeated > 0
             ):
-                whip_kills_text = self.language_manager.get_text("enemies_whipped").format(self.attack_system.enemies_defeated)
+                whip_kills_text = self.language_manager.get_text(
+                    "enemies_whipped"
+                ).format(self.attack_system.enemies_defeated)
                 whip_surf = self.resource_manager.fonts["small"].render(
                     whip_kills_text, False, (255, 150, 100)
                 )
@@ -1708,7 +1739,9 @@ class BloodLostGame:
 
             rank_data = self.get_rank_info(self.highscore_manager.highscore)
             rank_surf = self.resource_manager.fonts["small"].render(
-                self.language_manager.get_text("rank").format(rank_data["title"]), False, rank_data["color"]
+                self.language_manager.get_text("rank").format(rank_data["title"]),
+                False,
+                rank_data["color"],
             )
             rank_rect = rank_surf.get_rect(center=(400, y_offset + 20))
             self.screen.blit(rank_surf, rank_rect)
@@ -1766,8 +1799,10 @@ class BloodLostGame:
         title_rect = title_surf.get_rect(center=(400, 100))
         self.screen.blit(title_surf, title_rect)
 
-        current_lang_text = "English" if self.language_manager.current_language == "en" else "Portugues"
-        
+        current_lang_text = (
+            "English" if self.language_manager.current_language == "en" else "Portugues"
+        )
+
         settings_options = [
             self.language_manager.get_text("volume").format(int(self.volume * 100)),
             f"{self.language_manager.get_text('language')}: {current_lang_text}",
@@ -1855,7 +1890,9 @@ class BloodLostGame:
         score_rect = score_surf.get_rect(center=(400, 240))
         self.screen.blit(score_surf, score_rect)
 
-        best_text = self.language_manager.get_text("best").format(self.highscore_manager.highscore)
+        best_text = self.language_manager.get_text("best").format(
+            self.highscore_manager.highscore
+        )
         best_surf = self.resource_manager.fonts["small"].render(best_text, False, GOLD)
         best_rect = best_surf.get_rect(center=(400, 280))
         self.screen.blit(best_surf, best_rect)
@@ -1869,8 +1906,12 @@ class BloodLostGame:
                 bosses_fought.append(BOSS_TRIGGERS[phase])
 
         if bosses_fought:
-            boss_names = [self.language_manager.get_text(f"{b}_boss_name") for b in bosses_fought]
-            boss_text = self.language_manager.get_text("bosses_defeated_run").format(", ".join(boss_names))
+            boss_names = [
+                self.language_manager.get_text(f"{b}_boss_name") for b in bosses_fought
+            ]
+            boss_text = self.language_manager.get_text("bosses_defeated_run").format(
+                ", ".join(boss_names)
+            )
             boss_surf = self.resource_manager.fonts["small"].render(
                 boss_text, False, (200, 100, 200)
             )
@@ -1878,7 +1919,9 @@ class BloodLostGame:
             self.screen.blit(boss_surf, boss_rect)
 
         if hasattr(self, "attack_system") and self.attack_system.enemies_defeated > 0:
-            whip_text = self.language_manager.get_text("enemies_whipped_run").format(self.attack_system.enemies_defeated)
+            whip_text = self.language_manager.get_text("enemies_whipped_run").format(
+                self.attack_system.enemies_defeated
+            )
             whip_surf = self.resource_manager.fonts["small"].render(
                 whip_text, False, (255, 150, 100)
             )
@@ -1966,14 +2009,18 @@ class BloodLostGame:
                     self.volume = max(0.0, self.volume - 0.1)
                     self.update_volume()
                 elif self.selected_setting == 1:
-                    new_lang = "pt" if self.language_manager.current_language == "en" else "en"
+                    new_lang = (
+                        "pt" if self.language_manager.current_language == "en" else "en"
+                    )
                     self.language_manager.set_language(new_lang)
             elif event.key in [pygame.K_RIGHT, pygame.K_d]:
                 if self.selected_setting == 0:
                     self.volume = min(1.0, self.volume + 0.1)
                     self.update_volume()
                 elif self.selected_setting == 1:
-                    new_lang = "en" if self.language_manager.current_language == "pt" else "pt"
+                    new_lang = (
+                        "en" if self.language_manager.current_language == "pt" else "pt"
+                    )
                     self.language_manager.set_language(new_lang)
 
     def handle_game_events(self, event):
@@ -1989,7 +2036,7 @@ class BloodLostGame:
             ):
                 self.player_gravity = JUMP_FORCE
             elif event.key == pygame.K_x:
-                self.shoot_projectile()
+                self.throw_knife()
             elif event.key == pygame.K_z:
                 self.handle_whip_attack()
             elif event.key == pygame.K_ESCAPE:
@@ -2092,13 +2139,10 @@ class BloodLostGame:
             if keys[pygame.K_LEFT] or keys[pygame.K_a]:
                 self.player_rect.x -= 5
                 self.last_move_direction = "left"
-                
+
             if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                 self.player_rect.x += 5
                 self.last_move_direction = "right"
-
-            if keys[pygame.K_x]:
-                self.shoot_projectile()
 
             if keys[pygame.K_z]:
                 self.handle_whip_attack()
@@ -2155,7 +2199,9 @@ class BloodLostGame:
                     self.bg_x_pos = 0
 
                 self.screen.blit(current_bg, (self.bg_x_pos, 0))
-                self.screen.blit(current_bg, (self.bg_x_pos + current_bg.get_width(), 0))
+                self.screen.blit(
+                    current_bg, (self.bg_x_pos + current_bg.get_width(), 0)
+                )
 
                 self.update_obstacles()
 
@@ -2172,6 +2218,7 @@ class BloodLostGame:
                         self.resource_manager.sounds["game_over"].play()
                     return
 
+            self.draw_projectiles()
             self.score = self.display_score()
             phase_changed = self.phase_manager.update_phase(self.score)
             self.phase_manager.update_notification_timer()
