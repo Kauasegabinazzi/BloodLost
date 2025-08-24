@@ -226,9 +226,9 @@ class PlayerAttackSystem:
     def load_whip_sprites(self, resource_manager):
         """Carrega sprites do chicote"""
         sprite_paths = [
-            'sprites\\attack1.png',
-            'sprites\\attack2.png', 
-            'sprites\\attack3.png'
+            'sprites\\Player\\attack1.png',
+            'sprites\\Player\\attack2.png', 
+            'sprites\\Player\\attack3.png'
         ]
         
         for i, path in enumerate(sprite_paths):
@@ -1098,11 +1098,11 @@ class BloodLostGame:
         
         # Backgrounds para cada fase
         background_paths = [
-            'sprites\\NES - Castlevania 2 Simons Quest.png', 
-            'sprites\\teste8.png', 
-            'sprites\\teste3.png',  
-            'sprites\\teste5.png', 
-            'sprites\\teste2.png', 
+            'sprites\\Background\\NES - Castlevania 2 Simons Quest.png', 
+            'sprites\\Background\\teste8.png', 
+            'sprites\\Background\\teste3.png',  
+            'sprites\\Background\\teste5.png', 
+            'sprites\\Background\\teste2.png', 
         ]
         
         for i, path in enumerate(background_paths):
@@ -1113,11 +1113,11 @@ class BloodLostGame:
                 rm.sprites[background_name] = rm.sprites['background_phase_0']
         
         # Menu e game over backgrounds
-        rm.load_sprite('menu_bg', 'sprites\\loading.webp', SCALE_FACTOR)
+        rm.load_sprite('menu_bg', 'sprites\\Background\\loading.webp', SCALE_FACTOR)
         
         # Game over background
         try:
-            gameover_img = pygame.image.load('sprites\\gameover.png').convert_alpha()
+            gameover_img = pygame.image.load('sprites\\Background\\gameover.png').convert_alpha()
             gameover_img = pygame.transform.scale(gameover_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
             rm.sprites['gameover_bg'] = gameover_img
         except:
@@ -1126,16 +1126,16 @@ class BloodLostGame:
             rm.sprites['gameover_bg'] = fallback_surface
         
         # Player sprites - EXPANDIDO
-        rm.load_sprite('player_idle', 'sprites\\walk1.png', HERO_SCALE)
-        rm.load_sprite('player_walk1', 'sprites\\walk1.png', HERO_SCALE)
-        rm.load_sprite('player_walk2', 'sprites\\wal2.png', HERO_SCALE)
-        rm.load_sprite('player_walk3', 'sprites\\walk3.png', HERO_SCALE)
-        rm.load_sprite('player_jump', 'sprites\\jump.png', HERO_SCALE)
+        rm.load_sprite('player_idle', 'sprites\\Player\\walk1.png', HERO_SCALE)
+        rm.load_sprite('player_walk1', 'sprites\\Player\\walk1.png', HERO_SCALE)
+        rm.load_sprite('player_walk2', 'sprites\\Player\\wal2.png', HERO_SCALE)
+        rm.load_sprite('player_walk3', 'sprites\\Player\\walk3.png', HERO_SCALE)
+        rm.load_sprite('player_jump', 'sprites\\Player\\jump.png', HERO_SCALE)
         
         # NOVO: Sprites de ataque
-        rm.load_sprite('player_attack1', 'sprites\\attack1.png', HERO_SCALE)
-        rm.load_sprite('player_attack2', 'sprites\\attack2.png', HERO_SCALE) 
-        rm.load_sprite('player_attack3', 'sprites\\attack3.png', HERO_SCALE)
+        rm.load_sprite('player_attack1', 'sprites\\Player\\attack1.png', HERO_SCALE)
+        rm.load_sprite('player_attack2', 'sprites\\Player\\attack2.png', HERO_SCALE) 
+        rm.load_sprite('player_attack3', 'sprites\\Player\\attack3.png', HERO_SCALE)
         
         # Se os sprites de ataque não existirem, usa sprites alternativos
         try:
@@ -1154,8 +1154,8 @@ class BloodLostGame:
         self.boss_sprites = {}
         try:
             # Tenta carregar sprites específicos de boss
-            vampire_sprite = rm.load_sprite('boss_vampire', 'sprites\\Enemie6 - idle.png', 3.0)
-            demon_sprite = rm.load_sprite('boss_demon', 'sprites\\Enemie4 - idle.png', 3.5)
+            vampire_sprite = rm.load_sprite('boss_vampire', 'sprites\\Bat2\\Enemie6 - idle.png', 3.0)
+            demon_sprite = rm.load_sprite('boss_demon', 'sprites\\Bat2\\Enemie6 - idle.png', 3.5)
             self.boss_sprites['vampire'] = vampire_sprite
             self.boss_sprites['demon'] = demon_sprite
         except:
@@ -1163,12 +1163,12 @@ class BloodLostGame:
         
         # Enemy sprites para obstáculos normais
         enemies_data = [
-            ('bat', ['sprites\\bat.png', 'sprites\\bat-walk.png', 'sprites\\bat-walk1.png']),
-            ('zombie', ['sprites\\Enemie3 - idle.png', 'sprites\\Enemie3-walk.png']),
-            ('knight', ['sprites\\Enemie1 - idle.png', 'sprites\\Enemie1-walk1.png', 'sprites\\Enemie1-walk2.png']),
-            ('owl', ['sprites\\Enemie2 - idle.png', 'sprites\\Enemie2-walk.png']),
-            ('bat1', ['sprites\\Enemie6 - idle.png', 'sprites\\Enemie6-walk.png', 'sprites\\Enemie6-walk2.png']),
-            ('panther', ['sprites\\Enemie4 - idle.png', 'sprites\\Enemie4-walk.png', 'sprites\\Enemie4-walk1.png', 'sprites\\Enemie4-walk2.png'])
+            ('bat', ['sprites\\Bat\\bat.png', 'sprites\\Bat\\bat-walk.png', 'sprites\\Bat\\bat-walk1.png']),
+            ('zombie', ['sprites\\Zombie\\Enemie3 - idle.png', 'sprites\\Zombie\\Enemie3-walk.png']),
+            ('knight', ['sprites\\Knight\\Enemie1 - idle.png', 'sprites\\Knight\\Enemie1-walk1.png', 'sprites\\Knight\\Enemie1-walk2.png']),
+            ('owl', ['sprites\\Owl\\Enemie2 - idle.png', 'sprites\\Owl\\Enemie2-walk.png']),
+            ('bat1', ['sprites\\Bat2\\Enemie6 - idle.png', 'sprites\\Bat2\\Enemie6-walk.png', 'sprites\\Bat2\\Enemie6-walk2.png']),
+            ('panther', ['sprites\\Panther\\Enemie4 - idle.png', 'sprites\\Panther\\Enemie4-walk.png', 'sprites\\Panther\\Enemie4-walk1.png', 'sprites\\Panther\\Enemie4-walk2.png'])
         ]
         
         for enemy_name, sprite_paths in enemies_data:
