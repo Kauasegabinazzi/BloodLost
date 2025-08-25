@@ -1514,10 +1514,6 @@ class BloodLostGame:
                 if (pygame.time.get_ticks() // 500) % 2
                 else (255, 200, 200)
             )
-            boss_warning = self.resource_manager.fonts["small"].render(
-                self.language_manager.get_text("boss_approaching"), False, warning_color
-            )
-            self.screen.blit(boss_warning, (20, 130))
 
         if self.highscore_manager.is_new_record(current_time) and current_time > 0:
             if (self.new_record_timer // 30) % 2:
