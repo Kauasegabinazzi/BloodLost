@@ -36,7 +36,7 @@ PHASE_NAMES = {
     ],
 }
 
-BOSS_TRIGGER = 5  # Dracula appears at 30 seconds
+BOSS_TRIGGER = 5
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -2057,14 +2057,15 @@ class BloodLostGame:
                 self.boss_music_playing = True
 
             keys = pygame.key.get_pressed()
+            if self.boss_manager.is_boss_active():
+                if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                    self.player_rect.x -= 5
+                    self.last_move_direction = "left"
 
-            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                self.player_rect.x -= 5
-                self.last_move_direction = "left"
-
-            if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                self.player_rect.x += 5
-                self.last_move_direction = "right"
+                if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                    self.player_rect.x += 5
+                    self.last_move_direction = "right"
+                
 
             if keys[pygame.K_z]:
                 self.handle_whip_attack()
