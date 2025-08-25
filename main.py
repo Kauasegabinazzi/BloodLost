@@ -528,7 +528,7 @@ class DraculaBattle:
         # Boss stats
         self.max_hp = 25
         self.boss_hp = self.max_hp
-        self.boss_rect = pygame.Rect(600, 130, 90, 120)
+        self.boss_rect = pygame.Rect(600, 130, 90, 200)
 
         # Animation states
         self.current_sprite = "idle"  # "idle" or "attack"
@@ -702,6 +702,7 @@ class DraculaBattle:
         return False
 
     def draw(self, screen, dracula_sprites=None):
+        
         shake_x = (
             randint(-self.screen_shake // 2, self.screen_shake // 2)
             if self.screen_shake > 0
@@ -766,7 +767,7 @@ class DraculaBattle:
         # Draw battle instructions
         if self.phase == "fighting":
             self.draw_battle_instructions(screen)
-
+        
     def draw_health_bar(self, screen):
         bar_width = 300
         bar_height = 25
