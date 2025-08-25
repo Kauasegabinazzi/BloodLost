@@ -25,18 +25,18 @@ PHASE_NAMES = {
         "Dark Corridors",
         "Ancient Library",
         "Vampire's Chamber",
-        "Final Battle",
+        "Dracula's Lair",
     ],
     "pt": [
         "Entrada do Castelo",
         "Corredores Sombrios",
         "Biblioteca Antiga",
         "Câmara do Vampiro",
-        "Batalha Final",
+        "Covil do Drácula",
     ],
 }
 
-BOSS_TRIGGERS = {2: "vampire", 4: "demon"}
+BOSS_TRIGGER = 5  # Dracula appears at 30 seconds
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -61,12 +61,10 @@ TEXTS = {
         "whip_info": "Whip has long range and destroys enemies instantly!",
         "hall_of_fame": "HALL OF FAME",
         "best_score_display": "BEST SCORE: {} seconds",
-        "bosses_defeated": "Bosses Defeated: {}/{}",
+        "boss_defeated": "Boss Defeated: {}",
         "enemies_whipped": "Enemies Whipped: {}",
-        "vampire_boss": "Vampire Boss - DEFEATED",
-        "demon_boss": "Demon Boss - DEFEATED",
-        "vampire_boss_not": "Vampire Boss - Not faced",
-        "demon_boss_not": "Demon Boss - Not faced",
+        "dracula_boss": "Dracula - DEFEATED",
+        "dracula_boss_not": "Dracula - Not faced",
         "rank": "Rank: {}",
         "no_records": "No records yet!",
         "press_back": "Press ESC or ENTER to return",
@@ -83,7 +81,7 @@ TEXTS = {
         "back_menu": "ENTER to return to main menu",
         "your_score": "Your Score: {}",
         "best": "Best: {}",
-        "bosses_defeated_run": "Bosses Defeated: {}",
+        "boss_defeated_run": "Boss Defeated: {}",
         "enemies_whipped_run": "Enemies Whipped This Run: {}",
         "max_phase": "Max Phase Reached: {}",
         "play_again": "Press SPACE to play again",
@@ -91,7 +89,7 @@ TEXTS = {
         "new_record": "NEW RECORD!",
         "score": "Score: {}",
         "phase": "Phase {}: {}",
-        "boss_approaching": "BOSS APPROACHING!",
+        "boss_approaching": "DRACULA APPROACHES!",
         "next_phase": "Next phase in: {}s",
         "invulnerable": "INVULNERABLE",
         "reload": "Reload: {}",
@@ -100,18 +98,17 @@ TEXTS = {
         "whip_ready": "Whip Ready! [Z]",
         "enemies_defeated": "Enemies Defeated: {}",
         "combo": "Combo x{}!",
-        "boss_defeated": "BOSS DEFEATED!",
+        "boss_defeated": "DRACULA DEFEATED!",
         "boss_hp": "{}/{} HP",
-        "vampire_boss_name": "Vampire Boss",
-        "demon_boss_name": "Demon Boss",
-        "boss_controls": "BOSS BATTLE CONTROLS:",
+        "dracula_boss_name": "Count Dracula",
+        "boss_controls": "DRACULA BATTLE CONTROLS:",
         "boss_jump": "SPACE/UP/W - Jump",
         "boss_left": "A/LEFT - Move Left",
         "boss_right": "D/RIGHT - Move Right",
         "boss_shoot": "X - SHOOT (Magic Projectiles)!",
         "boss_whip": "Z - WHIP ATTACK (Melee)!",
-        "boss_damage": "Hit boss with projectiles to damage!",
-        "boss_avoid": "Avoid red zones and enemy attacks!",
+        "boss_damage": "Hit Dracula with projectiles to damage!",
+        "boss_avoid": "Avoid his fireballs and cape attacks!",
         "ranks": {
             "vampire_slayer": "VAMPIRE SLAYER",
             "dark_knight": "DARK KNIGHT",
@@ -133,12 +130,10 @@ TEXTS = {
         "whip_info": "O chicote tem longo alcance e destrói inimigos instantaneamente!",
         "hall_of_fame": "HALL DA FAMA",
         "best_score_display": "MELHOR PONTUAÇÃO: {} segundos",
-        "bosses_defeated": "Chefes Derrotados: {}/{}",
+        "boss_defeated": "Chefe Derrotado: {}",
         "enemies_whipped": "Inimigos Chicoteados: {}",
-        "vampire_boss": "Chefe Vampiro - DERROTADO",
-        "demon_boss": "Chefe Demônio - DERROTADO",
-        "vampire_boss_not": "Chefe Vampiro - Não enfrentado",
-        "demon_boss_not": "Chefe Demônio - Não enfrentado",
+        "dracula_boss": "Drácula - DERROTADO",
+        "dracula_boss_not": "Drácula - Não enfrentado",
         "rank": "Rank: {}",
         "no_records": "Ainda não há recordes!",
         "press_back": "Aperte ESC ou ENTER para voltar",
@@ -146,16 +141,16 @@ TEXTS = {
         "volume": "Volume: {}%",
         "difficulty": "Dificuldade: Normal",
         "reset_highscore": "Resetar Recorde",
-        "reset_boss": "Resetar Progresso dos Chefes",
+        "reset_boss": "Resetar Progresso do Chefe",
         "back": "Voltar",
         "volume_instruction": "Use A/D ou SETAS ESQUERDA/DIREITA para ajustar volume",
         "enter_instruction": "ENTER para selecionar, ESC para voltar",
         "reset_record_warning": "ENTER para resetar o recorde (não pode ser desfeito!)",
-        "reset_boss_warning": "ENTER para resetar progresso dos chefes",
+        "reset_boss_warning": "ENTER para resetar progresso do chefe",
         "back_menu": "ENTER para voltar ao menu principal",
         "your_score": "Sua Pontuação: {}",
         "best": "Melhor: {}",
-        "bosses_defeated_run": "Chefes Derrotados: {}",
+        "boss_defeated_run": "Chefe Derrotado: {}",
         "enemies_whipped_run": "Inimigos Chicoteados Esta Partida: {}",
         "max_phase": "Fase Máxima Alcançada: {}",
         "play_again": "Aperte ESPAÇO para jogar novamente",
@@ -163,7 +158,7 @@ TEXTS = {
         "new_record": "NOVO RECORDE!",
         "score": "Pontuação: {}",
         "phase": "Fase {}: {}",
-        "boss_approaching": "CHEFE SE APROXIMANDO!",
+        "boss_approaching": "DRÁCULA SE APROXIMA!",
         "next_phase": "Próxima fase em: {}s",
         "invulnerable": "INVULNERÁVEL",
         "reload": "Recarregando: {}",
@@ -172,18 +167,17 @@ TEXTS = {
         "whip_ready": "Chicote Pronto! [Z]",
         "enemies_defeated": "Inimigos Derrotados: {}",
         "combo": "Combo x{}!",
-        "boss_defeated": "CHEFE DERROTADO!",
+        "boss_defeated": "DRÁCULA DERROTADO!",
         "boss_hp": "{}/{} HP",
-        "vampire_boss_name": "Chefe Vampiro",
-        "demon_boss_name": "Chefe Demônio",
-        "boss_controls": "CONTROLES DA BATALHA DO CHEFE:",
+        "dracula_boss_name": "Conde Drácula",
+        "boss_controls": "CONTROLES DA BATALHA DO DRÁCULA:",
         "boss_jump": "ESPAÇO/CIMA/W - Pular",
         "boss_left": "A/ESQUERDA - Mover para Esquerda",
         "boss_right": "D/DIREITA - Mover para Direita",
         "boss_shoot": "X - ATIRAR (Projéteis Mágicos)!",
         "boss_whip": "Z - ATAQUE DE CHICOTE (Corpo a Corpo)!",
-        "boss_damage": "Atinja o chefe com projéteis para causar dano!",
-        "boss_avoid": "Evite zonas vermelhas e ataques inimigos!",
+        "boss_damage": "Atinja o Drácula com projéteis para causar dano!",
+        "boss_avoid": "Evite suas bolas de fogo e ataques do manto!",
         "ranks": {
             "vampire_slayer": "CAÇADOR DE VAMPIROS",
             "dark_knight": "CAVALEIRO SOMBRIO",
@@ -389,7 +383,7 @@ class PlayerAttackSystem:
             return self.current_whip_attack.current_frame
         return 0
 
-    def update(self, obstacles, sounds=None):
+    def update(self, obstacles, boss_manager=None, sounds=None):
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
 
@@ -415,18 +409,50 @@ class PlayerAttackSystem:
 
                     if sounds and "whip_hit" in sounds:
                         sounds["whip_hit"].play()
+                        
+                if boss_manager and boss_manager.is_boss_active():
+                    if self.check_boss_collision(boss_manager):
+                        # Boss foi atingido!
+                        if sounds and "whip_hit" in sounds:
+                            sounds["whip_hit"].play()
+                        
+                        self.combo_counter += 1
+                        self.combo_timer = 120
             else:
                 self.current_whip_attack = None
+
+    def check_boss_collision(self, boss_manager):
+        """Verifica se o chicote atingiu o boss"""
+        if not self.current_whip_attack or not self.current_whip_attack.active:
+            return False
+        
+        current_hitbox = self.current_whip_attack.get_current_hitbox()
+        if not current_hitbox:
+            return False
+        
+        # Verificar se já causou dano neste frame
+        boss_id = "boss_dracula"
+        if boss_id in self.current_whip_attack.damage_dealt:
+            return False
+        
+        # Verificar colisão com o boss
+        boss = boss_manager.current_boss
+        if boss and boss.active and boss.phase == "fighting":
+            if current_hitbox.colliderect(boss.boss_rect):
+                # Usar o método take_whip_damage do boss
+                if boss.take_whip_damage(2):  # Chicote causa 2 de dano
+                    # Marcar que já causou dano
+                    self.current_whip_attack.damage_dealt.append(boss_id)
+                    self.current_whip_attack.screen_shake = 15
+                    return True
+        
+        return False
 
     def draw(self, screen):
         if self.current_whip_attack and self.current_whip_attack.active:
             self.current_whip_attack.draw(screen, self.whip_sprites)
 
     def draw_ui(self, screen, fonts):
-        lang = self.language_manager.current_language
-
-
-
         if self.combo_counter > 1:
             combo_color = (
                 (255, 100, 100) if self.combo_counter >= 5 else (255, 200, 100)
@@ -459,11 +485,9 @@ class KnifeProjectile:
         self.original_sprite = knife_sprite
 
     def update(self):
-        old_x = self.x
         self.x += self.speed
         self.rect.x = self.x
 
-        # Rotaciona a faca enquanto voa
         self.rotation += self.rotation_speed
         if self.rotation >= 360:
             self.rotation = 0
@@ -472,77 +496,65 @@ class KnifeProjectile:
             self.active = False
 
     def draw(self, screen):
-
         if self.knife_sprite and self.original_sprite:
             sprite_rect = self.original_sprite.get_rect(
                 center=(self.x + self.width // 2, self.y + self.height // 2)
             )
-        screen.blit(self.original_sprite, sprite_rect)
+            screen.blit(self.original_sprite, sprite_rect)
 
 
-class BossBattle:
-    def __init__(self, boss_type, screen_width, screen_height, language_manager):
-        self.boss_type = boss_type
+class DraculaBattle:
+    def __init__(
+        self, screen_width, screen_height, language_manager, fireball_sprite=None,resource_manager=None
+    ):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.active = True
         self.scroll_locked = True
         self.language_manager = language_manager
+        
+        if resource_manager and "fireball" in resource_manager.sprites:
+            self.fireball_sprite = resource_manager.sprites["fireball"]
+        else:
+            self.fireball_sprite = None
 
+        # Battle phases
         self.phase = "entrance"
         self.entrance_timer = 0
         self.defeat_timer = 0
 
-        self.setup_boss_stats()
+        self.fireball_sprite = fireball_sprite
 
+        # Boss stats
+        self.max_hp = 25
+        self.boss_hp = self.max_hp
+        self.boss_rect = pygame.Rect(600, 130, 90, 120)
+
+        # Animation states
+        self.current_sprite = "idle"  # "idle" or "attack"
+        self.attack_animation_timer = 0
+        self.sprite_timer = 0
+
+        # Combat system
         self.attack_timer = 0
         self.attack_cooldown = 0
-        self.current_attack = None
-        self.projectiles = []
+        self.attack_interval = 90
+        self.fireballs = []
 
-        self.damage_zones = []
+        # Effects
         self.invulnerable_timer = 0
-
         self.screen_shake = 0
         self.flash_timer = 0
 
-    def setup_boss_stats(self):
-        boss_configs = {
-            "vampire": {
-                "hp": 15,
-                "size": (80, 100),
-                "pos": (600, 210),
-                "attacks": ["bat_swarm", "teleport_strike"],
-                "attack_interval": 120,
-                "speed": 2,
-            },
-            "demon": {
-                "hp": 20,
-                "size": (90, 110),
-                "pos": (580, 200),
-                "attacks": ["fire_breath", "charge"],
-                "attack_interval": 100,
-                "speed": 2.5,
-            },
-        }
-
-        config = boss_configs.get(self.boss_type, boss_configs["vampire"])
-        self.max_hp = config["hp"]
-        self.boss_hp = self.max_hp
-        self.boss_rect = pygame.Rect(
-            config["pos"][0], config["pos"][1], config["size"][0], config["size"][1]
-        )
-        self.attacks = config["attacks"]
-        self.attack_interval = config["attack_interval"]
-        self.boss_speed = config["speed"]
-
+        # Position for entrance
         self.boss_rect.x = self.screen_width + 100
-        self.target_x = config["pos"][0]
+        self.target_x = 580
 
     def update(self, player_rect, player_projectiles):
         if not self.active:
             return False
 
+        # Update timers
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1
         if self.invulnerable_timer > 0:
@@ -552,6 +564,10 @@ class BossBattle:
         if self.flash_timer > 0:
             self.flash_timer -= 1
 
+        # Update sprite animation
+        self.update_sprite_animation()
+
+        # Phase management
         if self.phase == "entrance":
             self.update_entrance()
         elif self.phase == "fighting":
@@ -559,13 +575,24 @@ class BossBattle:
         elif self.phase == "defeat":
             self.update_defeat()
 
-        self.update_projectiles()
+        # Update fireballs
+        self.update_fireballs()
 
         return self.active
 
+    def update_sprite_animation(self):
+        self.sprite_timer += 1
+
+        # Handle attack animation
+        if self.current_sprite == "attack":
+            self.attack_animation_timer += 1
+            if self.attack_animation_timer >= 60:  # Attack animation lasts 1 second
+                self.current_sprite = "idle"
+                self.attack_animation_timer = 0
+
     def update_entrance(self):
         if self.boss_rect.x > self.target_x:
-            self.boss_rect.x -= self.boss_speed * 2
+            self.boss_rect.x -= 3
         else:
             self.boss_rect.x = self.target_x
             self.entrance_timer += 1
@@ -574,20 +601,51 @@ class BossBattle:
             self.phase = "fighting"
             self.screen_shake = 20
 
+    def take_whip_damage(self, damage=2):
+        if self.invulnerable_timer > 0:
+            return False
+        
+        self.boss_hp -= damage
+        self.invulnerable_timer = 30  # Invulnerabilidade mais longa para chicote
+        self.flash_timer = 20  # Flash mais longo
+        self.screen_shake = 25  # Shake mais intenso
+        
+        # Efeito especial para chicote
+        if self.boss_hp <= self.max_hp // 2:
+            self.attack_interval = max(40, self.attack_interval - 3)
+        
+        return True
+
     def update_fighting(self, player_rect, player_projectiles):
         self.attack_timer += 1
 
-        if self.attack_cooldown <= 0 and self.current_attack is None:
-            self.start_random_attack()
+        # Attack pattern
+        if self.attack_cooldown <= 0:
+            self.start_fireball_attack()
+            self.attack_cooldown = self.attack_interval
 
-        if self.current_attack:
-            self.execute_current_attack()
-
+        # Check for damage from player projectiles
         self.check_projectile_damage(player_projectiles)
 
+        # Check if defeated
         if self.boss_hp <= 0:
             self.phase = "defeat"
             self.defeat_timer = 0
+
+    def start_fireball_attack(self):
+        # Change to attack sprite
+        self.current_sprite = "attack"
+        self.attack_animation_timer = 0
+
+        # Create fireball after short delay
+        fireball = {
+            "x": self.boss_rect.x - 20,
+            "y": self.boss_rect.centery,
+            "speed_x": -5,
+            "speed_y": randint(-2, 2),
+            "lifetime": 120,
+        }
+        self.fireballs.append(fireball)
 
     def check_projectile_damage(self, player_projectiles):
         if self.invulnerable_timer > 0:
@@ -602,133 +660,23 @@ class BossBattle:
 
                 projectile.active = False
 
+                # Increase attack speed as HP decreases
                 if self.boss_hp <= self.max_hp // 2:
-                    self.attack_interval = max(60, self.attack_interval - 15)
+                    self.attack_interval = max(50, self.attack_interval - 5)
 
                 break
 
-    def start_random_attack(self):
-        self.current_attack = choice(self.attacks)
-        self.attack_timer = 0
-        self.attack_cooldown = self.attack_interval
+    def update_fireballs(self):
+        active_fireballs = []
+        for fireball in self.fireballs:
+            fireball["x"] += fireball["speed_x"]
+            fireball["y"] += fireball["speed_y"]
+            fireball["lifetime"] -= 1
 
-    def execute_current_attack(self):
-        if self.boss_type == "vampire":
-            self.execute_vampire_attacks()
-        elif self.boss_type == "demon":
-            self.execute_demon_attacks()
+            if fireball["lifetime"] > 0 and fireball["x"] > -50:
+                active_fireballs.append(fireball)
 
-    def execute_vampire_attacks(self):
-        if self.current_attack == "teleport_strike":
-            if self.attack_timer == 30:
-                self.boss_rect.x = 250
-                self.flash_timer = 10
-                self.create_danger_zone(200, 250, 150, 80, 60)
-            elif self.attack_timer >= 90:
-                self.current_attack = None
-                self.boss_rect.x = self.target_x
-
-        elif self.current_attack == "bat_swarm":
-            if self.attack_timer == 20:
-                for i in range(5):
-                    angle = (i * 36) * math.pi / 180
-                    self.projectiles.append(
-                        {
-                            "type": "bat",
-                            "x": self.boss_rect.centerx,
-                            "y": self.boss_rect.centery,
-                            "speed_x": math.cos(angle) * 3,
-                            "speed_y": math.sin(angle) * 2,
-                            "lifetime": 120,
-                        }
-                    )
-            elif self.attack_timer >= 100:
-                self.current_attack = None
-
-    def execute_demon_attacks(self):
-        if self.current_attack == "fire_breath":
-            if self.attack_timer % 15 == 0 and self.attack_timer < 75:
-                self.projectiles.append(
-                    {
-                        "type": "fire",
-                        "x": self.boss_rect.x - 20,
-                        "y": self.boss_rect.centery,
-                        "speed_x": -4,
-                        "speed_y": randint(-1, 1),
-                        "lifetime": 80,
-                    }
-                )
-            elif self.attack_timer >= 100:
-                self.current_attack = None
-
-        elif self.current_attack == "charge":
-            if self.attack_timer < 60:
-                self.boss_rect.x -= 4
-                if self.attack_timer % 10 == 0:
-                    self.screen_shake = 5
-            elif self.attack_timer < 120:
-                if self.boss_rect.x < self.target_x:
-                    self.boss_rect.x += 3
-            else:
-                self.boss_rect.x = self.target_x
-                self.current_attack = None
-
-    def create_danger_zone(self, x, y, w, h, duration):
-        self.damage_zones.append(
-            {
-                "rect": pygame.Rect(x, y, w, h),
-                "duration": duration,
-                "warning_time": 20,
-                "active": False,
-            }
-        )
-
-    def update_projectiles(self):
-        active_projectiles = []
-        for proj in self.projectiles:
-            proj["x"] += proj["speed_x"]
-            proj["y"] += proj["speed_y"]
-            proj["lifetime"] -= 1
-
-            if proj["lifetime"] > 0 and -50 < proj["x"] < self.screen_width + 50:
-                active_projectiles.append(proj)
-
-        self.projectiles = active_projectiles
-
-        active_zones = []
-        for zone in self.damage_zones:
-            zone["duration"] -= 1
-            if zone["duration"] > zone["warning_time"]:
-                zone["active"] = False
-            else:
-                zone["active"] = True
-
-            if zone["duration"] > 0:
-                active_zones.append(zone)
-
-        self.damage_zones = active_zones
-
-    def check_player_damage(self, player_rect):
-        if self.phase != "fighting":
-            return False
-
-        for proj in self.projectiles:
-            proj_rect = pygame.Rect(proj["x"] - 15, proj["y"] - 15, 30, 30)
-            if player_rect.colliderect(proj_rect):
-                return True
-
-        for zone in self.damage_zones:
-            if zone["active"] and player_rect.colliderect(zone["rect"]):
-                return True
-
-        if (
-            self.current_attack in ["teleport_strike", "charge"]
-            and self.boss_rect.x < 500
-            and player_rect.colliderect(self.boss_rect)
-        ):
-            return True
-
-        return False
+        self.fireballs = active_fireballs
 
     def update_defeat(self):
         self.defeat_timer += 1
@@ -741,7 +689,19 @@ class BossBattle:
             self.active = False
             return False
 
-    def draw(self, screen, boss_sprites=None):
+    def check_player_damage(self, player_rect):
+        if self.phase != "fighting":
+            return False
+
+        # Check fireball collision
+        for fireball in self.fireballs:
+            fireball_rect = pygame.Rect(fireball["x"] - 15, fireball["y"] - 15, 30, 30)
+            if player_rect.colliderect(fireball_rect):
+                return True
+
+        return False
+
+    def draw(self, screen, dracula_sprites=None):
         shake_x = (
             randint(-self.screen_shake // 2, self.screen_shake // 2)
             if self.screen_shake > 0
@@ -753,44 +713,29 @@ class BossBattle:
             else 0
         )
 
-        for zone in self.damage_zones:
-            if not zone["active"]:
-                alpha = 100 + (zone["duration"] % 20) * 3
-                warning_surface = pygame.Surface(
-                    (zone["rect"].width, zone["rect"].height)
+        # Draw fireballs
+        for fireball in self.fireballs:
+            fireball_x = int(fireball["x"] + shake_x)
+            fireball_y = int(fireball["y"] + shake_y)
+            if self.fireball_sprite:
+                # Use o sprite da bola de fogo
+                fireball_rect = self.fireball_sprite.get_rect(
+                    center=(fireball_x, fireball_y)
                 )
-                warning_surface.set_alpha(alpha)
-                warning_surface.fill((255, 255, 0))
-                screen.blit(
-                    warning_surface,
-                    (zone["rect"].x + shake_x, zone["rect"].y + shake_y),
-                )
+                screen.blit(self.fireball_sprite, fireball_rect)
             else:
-                danger_surface = pygame.Surface(
-                    (zone["rect"].width, zone["rect"].height)
-                )
-                danger_surface.set_alpha(150)
-                danger_surface.fill((255, 0, 0))
-                screen.blit(
-                    danger_surface, (zone["rect"].x + shake_x, zone["rect"].y + shake_y)
-                )
+                # Fallback para os círculos antigos
+                pygame.draw.circle(screen, (255, 100, 0), (fireball_x, fireball_y), 12)
+                pygame.draw.circle(screen, (255, 200, 100), (fireball_x, fireball_y), 6)
 
-        for proj in self.projectiles:
-            color = (255, 100, 0) if proj["type"] == "fire" else (100, 50, 150)
-            size = 12 if proj["type"] == "fire" else 8
-            pygame.draw.circle(
-                screen,
-                color,
-                (int(proj["x"] + shake_x), int(proj["y"] + shake_y)),
-                size,
-            )
-
-        boss_color = (150, 50, 150) if self.boss_type == "vampire" else (200, 100, 50)
+        # Draw Dracula
+        boss_color = (220, 0, 100)  # Dark purple for Dracula
         if self.flash_timer > 0:
             boss_color = (255, 255, 255)
 
-        if boss_sprites and self.boss_type in boss_sprites:
-            boss_surface = boss_sprites[self.boss_type]
+        # Use sprite if available, otherwise draw rectangle
+        if dracula_sprites and self.current_sprite in dracula_sprites:
+            boss_surface = dracula_sprites[self.current_sprite]
             if self.flash_timer > 0:
                 flash_surface = boss_surface.copy()
                 flash_surface.fill((255, 255, 255), special_flags=pygame.BLEND_ADD)
@@ -815,10 +760,12 @@ class BossBattle:
                 ),
             )
 
+        # Draw health bar
         self.draw_health_bar(screen)
 
+        # Draw battle instructions
         if self.phase == "fighting":
-            self.draw_boss_battle_instructions(screen)
+            self.draw_battle_instructions(screen)
 
     def draw_health_bar(self, screen):
         bar_width = 300
@@ -854,12 +801,12 @@ class BossBattle:
         screen.blit(hp_surface, hp_rect)
 
         font_title = pygame.font.Font(None, 32)
-        boss_name = self.language_manager.get_text(f"{self.boss_type}_boss_name")
+        boss_name = self.language_manager.get_text("dracula_boss_name")
         text = font_title.render(boss_name, True, WHITE)
         text_rect = text.get_rect(center=(self.screen_width // 2, bar_y - 20))
         screen.blit(text, text_rect)
 
-    def draw_boss_battle_instructions(self, screen):
+    def draw_battle_instructions(self, screen):
         font_medium = pygame.font.Font(None, 28)
         font_small = pygame.font.Font(None, 20)
 
@@ -905,22 +852,25 @@ class BossBattle:
 class BossManager:
     def __init__(self, language_manager):
         self.current_boss = None
-        self.defeated_bosses = set()
+        self.boss_defeated = False
         self.boss_victory_timer = 0
         self.boss_reward_given = False
         self.language_manager = language_manager
+        self.fireball_sprite = None
 
-    def should_trigger_boss(self, current_phase):
+    def set_fireball_sprite(self, sprite):
+        self.fireball_sprite = sprite
+
+    def should_trigger_boss(self, current_score):
         return (
-            current_phase in BOSS_TRIGGERS
-            and current_phase not in self.defeated_bosses
+            current_score >= BOSS_TRIGGER
+            and not self.boss_defeated
             and self.current_boss is None
         )
 
-    def start_boss_battle(self, phase):
-        boss_type = BOSS_TRIGGERS.get(phase, "vampire")
-        self.current_boss = BossBattle(
-            boss_type, SCREEN_WIDTH, SCREEN_HEIGHT, self.language_manager
+    def start_boss_battle(self):
+        self.current_boss = DraculaBattle(
+            SCREEN_WIDTH, SCREEN_HEIGHT, self.language_manager, self.fireball_sprite
         )
         self.boss_reward_given = False
         return True
@@ -930,15 +880,7 @@ class BossManager:
             still_active = self.current_boss.update(player_rect, player_projectiles)
 
             if not still_active and not self.boss_reward_given:
-                defeated_phase = None
-                for phase, boss_type in BOSS_TRIGGERS.items():
-                    if boss_type == self.current_boss.boss_type:
-                        defeated_phase = phase
-                        break
-
-                if defeated_phase is not None:
-                    self.defeated_bosses.add(defeated_phase)
-
+                self.boss_defeated = True
                 self.boss_victory_timer = 120
                 self.boss_reward_given = True
                 return "boss_defeated"
@@ -1090,7 +1032,6 @@ class ResourceManager:
             self.sounds[name] = sound
             return sound
         except:
-
             return None
 
     def load_font(self, name, path, size):
@@ -1099,7 +1040,6 @@ class ResourceManager:
             self.fonts[name] = font
             return font
         except:
-
             return pygame.font.Font(None, size)
 
 
@@ -1172,7 +1112,7 @@ class BloodLostGame:
         pygame.init()
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("BloodLost - Fixed Walk Animation")
+        pygame.display.set_caption("BloodLost - Dracula Boss Battle")
         self.clock = pygame.time.Clock()
 
         self.language_manager = LanguageManager()
@@ -1222,6 +1162,7 @@ class BloodLostGame:
     def load_resources(self):
         rm = self.resource_manager
 
+        # Load backgrounds
         background_paths = [
             "sprites\\Background\\NES - Castlevania 2 Simons Quest.png",
             "sprites\\Background\\teste8.png",
@@ -1234,7 +1175,6 @@ class BloodLostGame:
             background_name = f"background_phase_{i}"
             loaded_sprite = rm.load_sprite(background_name, path, SCALE_FACTOR)
             if loaded_sprite is None and i > 0:
-
                 rm.sprites[background_name] = rm.sprites["background_phase_0"]
 
         rm.load_sprite("menu_bg", "sprites\\Background\\loading.webp", SCALE_FACTOR)
@@ -1252,6 +1192,7 @@ class BloodLostGame:
             fallback_surface.fill((50, 20, 50))
             rm.sprites["gameover_bg"] = fallback_surface
 
+        # Load player sprites
         rm.load_sprite("player_idle", "sprites\\Player\\walk1.png", HERO_SCALE)
         rm.load_sprite("player_walk1", "sprites\\Player\\walk1.png", HERO_SCALE)
         rm.load_sprite("player_walk2", "sprites\\Player\\wal2.png", HERO_SCALE)
@@ -1262,31 +1203,32 @@ class BloodLostGame:
         rm.load_sprite("player_attack2", "sprites\\Player\\attack2.png", HERO_SCALE)
         rm.load_sprite("player_attack3", "sprites\\Player\\attack3.png", HERO_SCALE)
 
+        # Load Dracula sprites (idle and attack)
+        self.dracula_sprites = {}
         try:
-            test_attack = rm.sprites.get("player_attack1")
-            if test_attack is None or test_attack.get_width() == 50:
-                raise Exception("Sprites de ataque não encontrados")
+            # Load the two Dracula sprites from the uploaded images
+            idle_sprite = rm.load_sprite(
+                "dracula_idle", "sprites\\Dracula\\dracula_idle.png", 3.0
+            )
+            attack_sprite = rm.load_sprite(
+                "dracula_attack", "sprites\\Dracula\\dracula_attack.png", 3.0
+            )
+            self.dracula_sprites["idle"] = idle_sprite
+            self.dracula_sprites["attack"] = attack_sprite
+            rm.load_sprite("fireball", "sprites\\Dracula\\foguinho.png", 1.5)
         except:
-
-            rm.sprites["player_attack1"] = rm.sprites["player_walk1"]
-            rm.sprites["player_attack2"] = rm.sprites["player_walk2"]
-            rm.sprites["player_attack3"] = rm.sprites["player_walk3"]
+            print("Using placeholder sprites for Dracula")
+            # Create placeholder sprites if files not found
+            idle_placeholder = pygame.Surface((90, 120))
+            idle_placeholder.fill((150, 0, 100))
+            attack_placeholder = pygame.Surface((90, 120))
+            attack_placeholder.fill((200, 50, 150))
+            self.dracula_sprites["idle"] = idle_placeholder
+            self.dracula_sprites["attack"] = attack_placeholder
 
         self.attack_system.load_whip_sprites(rm)
 
-        self.boss_sprites = {}
-        try:
-            vampire_sprite = rm.load_sprite(
-                "boss_vampire", "sprites\\Bat2\\Enemie6 - idle.png", 3.0
-            )
-            demon_sprite = rm.load_sprite(
-                "boss_demon", "sprites\\Bat2\\Enemie6 - idle.png", 3.5
-            )
-            self.boss_sprites["vampire"] = vampire_sprite
-            self.boss_sprites["demon"] = demon_sprite
-        except:
-            print("Usando sprites placeholder para bosses")
-
+        # Load enemy sprites
         enemies_data = [
             (
                 "bat",
@@ -1341,6 +1283,7 @@ class BloodLostGame:
                 frames.append(rm.load_sprite(sprite_name, path, ENEMY_SCALE))
             self.animation_manager.add_animation(enemy_name, frames)
 
+        # Player animations
         player_walk_frames = [
             rm.sprites["player_walk1"],
             rm.sprites["player_walk2"],
@@ -1356,6 +1299,7 @@ class BloodLostGame:
         ]
         self.animation_manager.add_animation("player_attack", player_attack_frames)
 
+        # Load sounds
         rm.load_sound("bg_music", "music\\Marble Gallery.mp3", self.volume)
         rm.load_sound(
             "game_over", "music\\game-over-deep-male-voice-clip-352695.mp3", self.volume
@@ -1366,12 +1310,20 @@ class BloodLostGame:
         rm.load_sound("whip_attack", "music\\whip.mp3", self.volume * 0.7)
         rm.load_sound("whip_hit", "music\\whipHit.mp3", self.volume * 0.6)
 
+        # Load fonts
         rm.load_font("title", "fonts\\Pixeltype.ttf", 80)
         rm.load_font("large", "fonts\\Pixeltype.ttf", 50)
         rm.load_font("medium", "fonts\\Pixeltype.ttf", 40)
         rm.load_font("small", "fonts\\Pixeltype.ttf", 25)
+
+        # Load knife sprite
         rm.load_sprite("knife", "sprites\\Item\\faquinha2.png", 1.5)
         rm.load_sound("shoot", "music\\knife.mp3", self.volume * 0.5)
+
+        if "fireball" in self.resource_manager.sprites:
+            self.boss_manager.set_fireball_sprite(
+                self.resource_manager.sprites["fireball"]
+            )
 
     def setup_timers(self):
         self.obstacle_timer = pygame.USEREVENT + 1
@@ -1387,7 +1339,8 @@ class BloodLostGame:
 
     def update_volume(self):
         for sound in self.resource_manager.sounds.values():
-            sound.set_volume(self.volume)
+            if sound:
+                sound.set_volume(self.volume)
 
     def create_obstacle(self):
         if self.boss_manager.is_boss_active():
@@ -1444,8 +1397,6 @@ class BloodLostGame:
         return True
 
     def update_player_animation(self):
-        keys = pygame.key.get_pressed()
-
         is_attacking = self.attack_system.is_attacking()
         is_jumping = self.player_rect.bottom < GROUND_Y
 
@@ -1481,11 +1432,8 @@ class BloodLostGame:
                 ]
 
     def throw_knife(self):
-
         if self.shoot_cooldown <= 0:
-
-            # Coordenadas mais precisas
-            projectile_x = self.player_rect.centerx + 20  # Um pouco à frente do player
+            projectile_x = self.player_rect.centerx + 20
             projectile_y = self.player_rect.centery - 4
 
             knife_sprite = self.resource_manager.sprites.get("knife")
@@ -1495,9 +1443,7 @@ class BloodLostGame:
 
             self.shoot_cooldown = 20
 
-            # CORREÇÃO DO SOM:
             if "shoot" in self.resource_manager.sounds:
-
                 self.resource_manager.sounds["shoot"].play()
 
     def update_projectiles(self):
@@ -1556,10 +1502,11 @@ class BloodLostGame:
         )
         self.screen.blit(highscore_surf, (20, 70))
 
+        # Boss warning
         if (
-            self.phase_manager.current_phase in BOSS_TRIGGERS
-            and self.phase_manager.current_phase
-            not in self.boss_manager.defeated_bosses
+            current_time >= BOSS_TRIGGER - 5
+            and not self.boss_manager.boss_defeated
+            and not self.boss_manager.is_boss_active()
         ):
             warning_color = (
                 (255, 100, 100)
@@ -1570,10 +1517,6 @@ class BloodLostGame:
                 self.language_manager.get_text("boss_approaching"), False, warning_color
             )
             self.screen.blit(boss_warning, (20, 130))
-
-        if self.phase_manager.current_phase < len(PHASE_THRESHOLDS) - 1:
-            next_threshold = PHASE_THRESHOLDS[self.phase_manager.current_phase + 1]
-            remaining = next_threshold - current_time
 
         if self.highscore_manager.is_new_record(current_time) and current_time > 0:
             if (self.new_record_timer // 30) % 2:
@@ -1697,17 +1640,21 @@ class BloodLostGame:
             record_rect = record_surf.get_rect(center=(400, 200))
             self.screen.blit(record_surf, record_rect)
 
-            defeated_count = len(self.boss_manager.defeated_bosses)
-            total_bosses = len(BOSS_TRIGGERS)
-            boss_text = self.language_manager.get_text("bosses_defeated").format(
-                defeated_count, total_bosses
-            )
+            # Show boss defeat status
+            if self.boss_manager.boss_defeated:
+                boss_text = self.language_manager.get_text("dracula_boss")
+                color = LIGHT_GRAY
+            else:
+                boss_text = self.language_manager.get_text("dracula_boss_not")
+                color = DARK_GRAY
+
             boss_surf = self.resource_manager.fonts["small"].render(
-                boss_text, False, (200, 100, 200)
+                boss_text, False, color
             )
-            boss_rect = boss_surf.get_rect(center=(400, 230))
+            boss_rect = boss_surf.get_rect(center=(400, 240))
             self.screen.blit(boss_surf, boss_rect)
 
+            # Show whip kills if any
             if (
                 hasattr(self, "attack_system")
                 and self.attack_system.enemies_defeated > 0
@@ -1718,32 +1665,17 @@ class BloodLostGame:
                 whip_surf = self.resource_manager.fonts["small"].render(
                     whip_kills_text, False, (255, 150, 100)
                 )
-                whip_rect = whip_surf.get_rect(center=(400, 250))
+                whip_rect = whip_surf.get_rect(center=(400, 270))
                 self.screen.blit(whip_surf, whip_rect)
 
-            y_offset = 280
-            for phase, boss_type in BOSS_TRIGGERS.items():
-                if phase in self.boss_manager.defeated_bosses:
-                    boss_name = self.language_manager.get_text(f"{boss_type}_boss")
-                    color = LIGHT_GRAY
-                else:
-                    boss_name = self.language_manager.get_text(f"{boss_type}_boss_not")
-                    color = DARK_GRAY
-
-                boss_surf = self.resource_manager.fonts["small"].render(
-                    boss_name, False, color
-                )
-                boss_rect = boss_surf.get_rect(center=(400, y_offset))
-                self.screen.blit(boss_surf, boss_rect)
-                y_offset += 25
-
+            # Show rank
             rank_data = self.get_rank_info(self.highscore_manager.highscore)
             rank_surf = self.resource_manager.fonts["small"].render(
                 self.language_manager.get_text("rank").format(rank_data["title"]),
                 False,
                 rank_data["color"],
             )
-            rank_rect = rank_surf.get_rect(center=(400, y_offset + 20))
+            rank_rect = rank_surf.get_rect(center=(400, 320))
             self.screen.blit(rank_surf, rank_rect)
         else:
             no_record_surf = self.resource_manager.fonts["medium"].render(
@@ -1759,35 +1691,30 @@ class BloodLostGame:
         self.screen.blit(back_surf, back_rect)
 
     def get_rank_info(self, score):
-        if score >= 100:
+        if score >= 50 and self.boss_manager.boss_defeated:
             return {
                 "title": self.language_manager.get_text("ranks")["vampire_slayer"],
                 "color": (255, 50, 50),
-                "message": "You are the ultimate vampire hunter!",
             }
-        elif score >= 60:
+        elif score >= 40:
             return {
                 "title": self.language_manager.get_text("ranks")["dark_knight"],
                 "color": (150, 50, 150),
-                "message": "The castle trembles before you!",
             }
         elif score >= 30:
             return {
                 "title": self.language_manager.get_text("ranks")["castle_explorer"],
                 "color": (100, 100, 255),
-                "message": "You're getting stronger, warrior!",
             }
         elif score >= 15:
             return {
                 "title": self.language_manager.get_text("ranks")["brave_warrior"],
                 "color": (255, 150, 50),
-                "message": "Keep training to become legendary!",
             }
         else:
             return {
                 "title": self.language_manager.get_text("ranks")["novice_hunter"],
                 "color": LIGHT_GRAY,
-                "message": "Keep training to become legendary!",
             }
 
     def draw_settings(self):
@@ -1897,20 +1824,10 @@ class BloodLostGame:
         best_rect = best_surf.get_rect(center=(400, 280))
         self.screen.blit(best_surf, best_rect)
 
-        bosses_fought = []
-        for phase in BOSS_TRIGGERS:
-            if (
-                phase <= self.phase_manager.current_phase
-                and phase in self.boss_manager.defeated_bosses
-            ):
-                bosses_fought.append(BOSS_TRIGGERS[phase])
-
-        if bosses_fought:
-            boss_names = [
-                self.language_manager.get_text(f"{b}_boss_name") for b in bosses_fought
-            ]
-            boss_text = self.language_manager.get_text("bosses_defeated_run").format(
-                ", ".join(boss_names)
+        # Show if Dracula was defeated
+        if self.boss_manager.boss_defeated:
+            boss_text = self.language_manager.get_text("boss_defeated_run").format(
+                self.language_manager.get_text("dracula_boss_name")
             )
             boss_surf = self.resource_manager.fonts["small"].render(
                 boss_text, False, (200, 100, 200)
@@ -1918,6 +1835,7 @@ class BloodLostGame:
             boss_rect = boss_surf.get_rect(center=(400, 310))
             self.screen.blit(boss_surf, boss_rect)
 
+        # Show whip kills
         if hasattr(self, "attack_system") and self.attack_system.enemies_defeated > 0:
             whip_text = self.language_manager.get_text("enemies_whipped_run").format(
                 self.attack_system.enemies_defeated
@@ -1928,6 +1846,7 @@ class BloodLostGame:
             whip_rect = whip_surf.get_rect(center=(400, 330))
             self.screen.blit(whip_surf, whip_rect)
 
+        # Show max phase reached
         max_phase = self.phase_manager.current_phase
         phase_text = self.language_manager.get_text("max_phase").format(max_phase + 1)
         phase_surf = self.resource_manager.fonts["small"].render(
@@ -2001,7 +1920,7 @@ class BloodLostGame:
                 if self.selected_setting == 3:
                     self.highscore_manager.reset()
                 elif self.selected_setting == 4:
-                    self.boss_manager.defeated_bosses.clear()
+                    self.boss_manager.boss_defeated = False
                 elif self.selected_setting == 5:
                     self.game_state = "menu"
             elif event.key in [pygame.K_LEFT, pygame.K_a]:
@@ -2078,6 +1997,7 @@ class BloodLostGame:
         self.player_damaged = False
 
         self.phase_manager = PhaseManager(self.language_manager)
+        self.boss_manager = BossManager(self.language_manager)
 
         if "menu_music" in self.resource_manager.sounds:
             self.resource_manager.sounds["menu_music"].stop()
@@ -2125,8 +2045,9 @@ class BloodLostGame:
             if self.player_invulnerable_timer > 0:
                 self.player_invulnerable_timer -= 1
 
-            if self.boss_manager.should_trigger_boss(self.phase_manager.current_phase):
-                self.boss_manager.start_boss_battle(self.phase_manager.current_phase)
+            # Check for Dracula boss trigger
+            if self.boss_manager.should_trigger_boss(self.score):
+                self.boss_manager.start_boss_battle()
                 if "bg_music" in self.resource_manager.sounds:
                     self.resource_manager.sounds["bg_music"].stop()
                 if "boss_music" in self.resource_manager.sounds:
@@ -2154,14 +2075,14 @@ class BloodLostGame:
 
             self.update_projectiles()
 
-            self.attack_system.update(self.obstacle_list, self.resource_manager.sounds)
+            self.attack_system.update(self.obstacle_list, self.boss_manager, self.resource_manager.sounds)
 
             boss_status = self.boss_manager.update(
                 self.player_rect, self.player_projectiles
             )
 
             if boss_status == "boss_defeated":
-                self.score += 20
+                self.score += 30  # Bonus for defeating Dracula
 
             elif boss_status == "boss_complete":
                 if "boss_music" in self.resource_manager.sounds:
@@ -2235,7 +2156,7 @@ class BloodLostGame:
 
             self.update_player_animation()
             self.render_player_and_effects()
-            self.boss_manager.draw(self.screen, self.boss_sprites)
+            self.boss_manager.draw(self.screen, self.dracula_sprites)
             self.attack_system.draw_ui(self.screen, self.resource_manager.fonts)
             self.draw_phase_notification()
 
