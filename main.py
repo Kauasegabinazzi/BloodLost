@@ -889,15 +889,19 @@ class BossManager:
 
             if not still_active and not self.boss_reward_given:
                 self.boss_defeated = True
-                self.boss_victory_timer = 300
+                self.boss_victory_timer = 300  # 5 segundos
                 self.boss_reward_given = True
                 return "boss_defeated"
 
+        # Se o boss foi derrotado, contar o timer de vitória
         if self.boss_victory_timer > 0:
             self.boss_victory_timer -= 1
             if self.boss_victory_timer <= 0:
+                # Boss completamente derrotado - limpar tudo
                 self.current_boss = None
                 return "boss_complete"
+            # Ainda no timer de vitória
+            return "boss_victory_timer"
 
         return "active" if self.current_boss else "none"
 
@@ -911,7 +915,11 @@ class BossManager:
         return False
 
     def is_boss_active(self):
-        return self.current_boss is not None and self.current_boss.active
+        return (
+            self.current_boss is not None
+            and self.current_boss.active
+            and self.current_boss.phase in ["entrance", "fighting"]
+        )
 
     def draw(self, screen, boss_sprites=None):
         if self.current_boss and self.current_boss.active:
@@ -1135,6 +1143,7 @@ class BloodLostGame:
 
         self.game_state = "menu"
         self.game_active = False
+        self.victory_triggered = False
 
         self.score = 0
         self.start_time = 0
@@ -1989,6 +1998,7 @@ class BloodLostGame:
     def start_game(self):
         self.game_state = "playing"
         self.victory_timer = 0
+        self.victory_triggered = False
         self.obstacle_list.clear()
         self.player_projectiles.clear()
         self.shoot_cooldown = 0
@@ -2022,6 +2032,7 @@ class BloodLostGame:
         self.obstacle_list.clear()
         self.player_projectiles.clear()
         self.shoot_cooldown = 0
+        self.victory_triggered = False
         self.player_rect.bottom = GROUND_Y
         self.player_gravity = 0
 
@@ -2051,13 +2062,21 @@ class BloodLostGame:
         else:
             return self.resource_manager.sprites["background_phase_0"]
 
-
     def update_game(self):
-        if self.game_state == "victory":
+        if self.victory_triggered or self.game_state == "victory":
+            if not self.victory_triggered:
+                self.victory_timer = 0
+                self.victory_triggered = True
+
             self.victory_timer += 1
             if self.victory_timer >= 300:
                 self.game_state = "menu"
+                self.victory_triggered = False  # Reset da flag
                 self.reset_game_state()
+            return  # SAIR IMEDIATAMENTE
+
+        # Se não está no estado de jogo, não processar
+        if self.game_state != "playing":
             return
 
         if self.game_state == "playing":
@@ -2074,6 +2093,43 @@ class BloodLostGame:
                 self.music_playing = False
                 self.boss_music_playing = True
 
+            # Update boss status FIRST
+            boss_status = self.boss_manager.update(
+                self.player_rect, self.player_projectiles
+            )
+
+            # Check for boss completion IMMEDIATELY
+            if boss_status == "boss_complete":
+                # PARAR TUDO IMEDIATAMENTE
+                print("Boss derrotado! Ativando vitória...")
+                self.game_state = 'victory'
+                self.victory_triggered = True
+                self.boss_manager.current_boss = None
+                self.boss_manager.boss_victory_timer = 0
+                self.obstacle_list.clear()
+                self.player_projectiles.clear()
+                self.shoot_cooldown = 0
+                self.player_invulnerable_timer = 0
+
+                if "boss_music" in self.resource_manager.sounds:
+                    self.resource_manager.sounds["boss_music"].stop()
+
+                # Atualizar recorde se necessário
+                if self.highscore_manager.update_if_record(self.score):
+                    pass
+
+                # IR IMEDIATAMENTE para tela de vitória
+                self.game_state = "victory"
+                self.victory_timer = 0
+                self.stop_all_music()
+                return  # SAIR IMEDIATAMENTE - não processar mais nada
+
+            if boss_status == "boss_defeated":
+                self.score += 30  # Bonus for defeating Dracula
+                self.game_state = 'victory'
+                # Continue normalmente até boss_complete
+
+            # Só processar controles e lógica do jogo se NÃO estamos indo para vitória
             keys = pygame.key.get_pressed()
             if self.boss_manager.is_boss_active():
                 if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -2098,34 +2154,11 @@ class BloodLostGame:
                 self.obstacle_list, self.boss_manager, self.resource_manager.sounds
             )
 
-            boss_status = self.boss_manager.update(
-                self.player_rect, self.player_projectiles
-            )
-
-            if boss_status == "boss_defeated":
-                self.score += 30  # Bonus for defeating Dracula
-                # CORREÇÃO: Não fazer mais nada aqui, deixar o boss_manager controlar
-
-            elif boss_status == "boss_complete":
-                # CORREÇÃO: Ir imediatamente para vitória quando o boss é completamente derrotado
-                if "boss_music" in self.resource_manager.sounds:
-                    self.resource_manager.sounds["boss_music"].stop()
-
-                # Atualizar recorde se necessário
-                if self.highscore_manager.update_if_record(self.score):
-                    pass
-
-                # IR IMEDIATAMENTE para tela de vitória
-                self.game_state = "victory"
-                self.victory_timer = 0
-                self.stop_all_music()
-                return  # SAIR IMEDIATAMENTE da função
-
-            # Só continuar processando o jogo se NÃO estivermos indo para vitória
+            # Renderização e lógica do jogo
             if self.boss_manager.is_boss_active():
                 current_bg = self.get_current_background()
                 self.screen.blit(current_bg, (0, 0))
-                self.obstacle_list.clear()
+                self.obstacle_list.clear()  # Limpar obstáculos durante boss
 
                 if (
                     self.player_invulnerable_timer <= 0
@@ -2144,13 +2177,17 @@ class BloodLostGame:
                     return
 
             else:
+                # Lógica normal do jogo (movimento de fundo, obstáculos, etc.)
+
                 self.bg_x_pos -= 2
                 current_bg = self.get_current_background()
                 if self.bg_x_pos <= -current_bg.get_width():
                     self.bg_x_pos = 0
 
                 self.screen.blit(current_bg, (self.bg_x_pos, 0))
-                self.screen.blit(current_bg, (self.bg_x_pos + current_bg.get_width(), 0))
+                self.screen.blit(
+                    current_bg, (self.bg_x_pos + current_bg.get_width(), 0)
+                )
 
                 self.update_obstacles()
 
@@ -2167,6 +2204,7 @@ class BloodLostGame:
                         self.resource_manager.sounds["game_over"].play()
                     return
 
+            # Resto da lógica do jogo
             self.draw_projectiles()
             self.score = self.display_score()
             phase_changed = self.phase_manager.update_phase(self.score)
@@ -2257,6 +2295,9 @@ class BloodLostGame:
                 break
 
             self.update_audio()
+            if self.victory_triggered and self.game_state != "victory":
+                print(f"Forçando estado para victory. Estado atual: {self.game_state}")
+                self.game_state = "victory"
             self.update_game()
             self.render()
 
