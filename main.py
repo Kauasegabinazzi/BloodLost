@@ -188,7 +188,6 @@ TEXTS = {
     },
 }
 
-
 class PlayerAnimationState:
     def __init__(self):
         self.current_state = "walking"
@@ -225,7 +224,6 @@ class PlayerAnimationState:
 
     def get_frame_counter(self):
         return self.frame_counter
-
 
 class WhipAttack:
     def __init__(self, x, y, direction="right"):
@@ -332,7 +330,6 @@ class WhipAttack:
 
                     pygame.draw.circle(screen, (255, 215, 0), end_pos, 3)
                     pygame.draw.circle(screen, (255, 255, 255), end_pos, 2)
-
 
 class PlayerAttackSystem:
     def __init__(self, language_manager):
@@ -471,7 +468,6 @@ class PlayerAttackSystem:
             screen.blit(shadow_surf, shadow_rect)
             screen.blit(combo_surf, combo_rect)
 
-
 class KnifeProjectile:
     def __init__(self, x, y, knife_sprite=None):
         self.x = x
@@ -503,7 +499,6 @@ class KnifeProjectile:
                 center=(self.x + self.width // 2, self.y + self.height // 2)
             )
             screen.blit(self.original_sprite, sprite_rect)
-
 
 class DraculaBattle:
     def __init__(
@@ -856,7 +851,6 @@ class DraculaBattle:
 
             screen.blit(text, (20, SCREEN_HEIGHT - len(instructions) * 22 + i * 22))
 
-
 class BossManager:
     def __init__(self, language_manager):
         self.current_boss = None
@@ -944,7 +938,6 @@ class BossManager:
             screen.blit(shadow_text, shadow_rect)
             screen.blit(victory_text, victory_rect)
 
-
 class LanguageManager:
     def __init__(self):
         self.current_language = "pt"
@@ -979,7 +972,6 @@ class LanguageManager:
         if 0 <= phase_index < len(PHASE_NAMES[self.current_language]):
             return PHASE_NAMES[self.current_language][phase_index]
         return "Unknown Phase"
-
 
 class HighscoreManager:
     def __init__(self, filename="highscore.json"):
@@ -1016,7 +1008,6 @@ class HighscoreManager:
 
     def reset(self):
         self.save(0)
-
 
 class ResourceManager:
     def __init__(self):
@@ -1058,7 +1049,6 @@ class ResourceManager:
         except:
             return pygame.font.Font(None, size)
 
-
 class AnimationManager:
     def __init__(self):
         self.animations = {}
@@ -1080,7 +1070,6 @@ class AnimationManager:
         if name in self.animations:
             return self.animations[name][int(self.current_frames[name])]
         return None
-
 
 class PhaseManager:
     def __init__(self, language_manager):
@@ -1121,7 +1110,6 @@ class PhaseManager:
         if phase_index is None:
             phase_index = self.current_phase
         return f"background_phase_{phase_index}"
-
 
 class BloodLostGame:
     def __init__(self):
@@ -1323,7 +1311,7 @@ class BloodLostGame:
             "game_over", "music\\game-over-deep-male-voice-clip-352695.mp3", self.volume
         )
         rm.load_sound("menu_music", "music\\main-menu.mp3", self.volume)
-        rm.load_sound("boss_music", "music\\Marble Gallery.mp3", self.volume)
+        rm.load_sound("boss_music", "music\\Prologue.mp3", self.volume)
 
         rm.load_sound("whip_attack", "music\\whip.mp3", self.volume * 0.7)
         rm.load_sound("whip_hit", "music\\whipHit.mp3", self.volume * 0.6)
@@ -2101,7 +2089,6 @@ class BloodLostGame:
             # Check for boss completion IMMEDIATELY
             if boss_status == "boss_complete":
                 # PARAR TUDO IMEDIATAMENTE
-                print("Boss derrotado! Ativando vitória...")
                 self.game_state = 'victory'
                 self.victory_triggered = True
                 self.boss_manager.current_boss = None
@@ -2110,7 +2097,6 @@ class BloodLostGame:
                 self.player_projectiles.clear()
                 self.shoot_cooldown = 0
                 self.player_invulnerable_timer = 0
-
                 if "boss_music" in self.resource_manager.sounds:
                     self.resource_manager.sounds["boss_music"].stop()
 
@@ -2127,6 +2113,7 @@ class BloodLostGame:
             if boss_status == "boss_defeated":
                 self.score += 30  # Bonus for defeating Dracula
                 self.game_state = 'victory'
+                self.stop_all_music()
                 # Continue normalmente até boss_complete
 
             # Só processar controles e lógica do jogo se NÃO estamos indo para vitória
@@ -2379,7 +2366,6 @@ class BloodLostGame:
             )
             auto_rect = auto_surf.get_rect(center=(400, 450))
             self.screen.blit(auto_surf, auto_rect)
-
 
 def main():
     try:
