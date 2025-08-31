@@ -859,6 +859,12 @@ class BossManager:
         self.boss_reward_given = False
         self.language_manager = language_manager
         self.fireball_sprite = None
+        
+    def reset_boss_state(self):
+        """Reset completo do estado do boss"""
+        self.current_boss = None
+        self.boss_victory_timer = 0
+        self.boss_reward_given = False
 
     def set_fireball_sprite(self, sprite):
         self.fireball_sprite = sprite
@@ -1134,6 +1140,7 @@ class BloodLostGame:
         self.victory_triggered = False
 
         self.score = 0
+        self.score_boss = 0 
         self.start_time = 0
         self.bg_x_pos = 0
         self.new_record_timer = 0
@@ -1540,6 +1547,16 @@ class BloodLostGame:
 
         return current_time
 
+    def display_score_boss(self):   
+        """Display score specifically for boss battles"""
+        current_time = int(pygame.time.get_ticks() / 1000) - self.start_time
+        
+        # Update score_boss to match current game time
+        self.score_boss = current_time
+        
+        # Return the current time for use in other methods
+        return current_time
+    
     def draw_phase_notification(self):
         if self.phase_manager.show_phase_notification:
             notification_surface = pygame.Surface((400, 100))
@@ -1735,7 +1752,7 @@ class BloodLostGame:
         settings_options = [
             self.language_manager.get_text("volume").format(int(self.volume * 100)),
             f"{self.language_manager.get_text('language')}: {current_lang_text}",
-            self.language_manager.get_text("difficulty"),
+            # self.language_manager.get_text("difficulty"),
             self.language_manager.get_text("reset_highscore"),
             self.language_manager.get_text("reset_boss"),
             self.language_manager.get_text("back"),
@@ -2006,7 +2023,11 @@ class BloodLostGame:
         self.player_damaged = False
 
         self.phase_manager = PhaseManager(self.language_manager)
+        
+        # CORREÇÃO: Reset completo do boss manager no início do jogo
         self.boss_manager = BossManager(self.language_manager)
+        if "fireball" in self.resource_manager.sprites:
+            self.boss_manager.set_fireball_sprite(self.resource_manager.sprites["fireball"])
 
         if "menu_music" in self.resource_manager.sounds:
             self.resource_manager.sounds["menu_music"].stop()
@@ -2031,6 +2052,11 @@ class BloodLostGame:
         self.last_move_direction = "right"
 
         self.phase_manager = PhaseManager(self.language_manager)
+        
+        # CORREÇÃO: Reset completo do boss manager
+        self.boss_manager = BossManager(self.language_manager)
+        if "fireball" in self.resource_manager.sprites:
+            self.boss_manager.set_fireball_sprite(self.resource_manager.sprites["fireball"])
 
         if "bg_music" in self.resource_manager.sounds:
             self.resource_manager.sounds["bg_music"].stop()
@@ -2072,7 +2098,7 @@ class BloodLostGame:
                 self.player_invulnerable_timer -= 1
 
             # Check for Dracula boss trigger
-            if self.boss_manager.should_trigger_boss(self.score):
+            if self.boss_manager.should_trigger_boss(self.score_boss):
                 self.boss_manager.start_boss_battle()
                 if "bg_music" in self.resource_manager.sounds:
                     self.resource_manager.sounds["bg_music"].stop()
@@ -2156,8 +2182,8 @@ class BloodLostGame:
 
                     if self.highscore_manager.update_if_record(self.score):
                         pass
-
                     self.game_state = "game_over"
+                    self.score_boss = 0
                     self.stop_all_music()
                     if "game_over" in self.resource_manager.sounds:
                         self.resource_manager.sounds["game_over"].play()
@@ -2186,6 +2212,7 @@ class BloodLostGame:
                         pass
 
                     self.game_state = "game_over"
+                    self.score_boss = 0
                     self.stop_all_music()
                     if "game_over" in self.resource_manager.sounds:
                         self.resource_manager.sounds["game_over"].play()
@@ -2194,6 +2221,7 @@ class BloodLostGame:
             # Resto da lógica do jogo
             self.draw_projectiles()
             self.score = self.display_score()
+            self.score_boss = self.display_score_boss()
             phase_changed = self.phase_manager.update_phase(self.score)
             self.phase_manager.update_notification_timer()
 
