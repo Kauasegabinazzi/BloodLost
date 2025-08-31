@@ -194,6 +194,8 @@ class PlayerAnimationState:
         self.current_state = "walking"
         self.state_timer = 0
         self.frame_counter = 0
+        self.victory_timer = 0
+        self.victory_auto_return = 480
 
     def update_state(self, is_attacking, is_jumping):
         self.state_timer += 1
@@ -409,13 +411,13 @@ class PlayerAttackSystem:
 
                     if sounds and "whip_hit" in sounds:
                         sounds["whip_hit"].play()
-                        
+
                 if boss_manager and boss_manager.is_boss_active():
                     if self.check_boss_collision(boss_manager):
                         # Boss foi atingido!
                         if sounds and "whip_hit" in sounds:
                             sounds["whip_hit"].play()
-                        
+
                         self.combo_counter += 1
                         self.combo_timer = 120
             else:
@@ -425,16 +427,16 @@ class PlayerAttackSystem:
         """Verifica se o chicote atingiu o boss"""
         if not self.current_whip_attack or not self.current_whip_attack.active:
             return False
-        
+
         current_hitbox = self.current_whip_attack.get_current_hitbox()
         if not current_hitbox:
             return False
-        
+
         # Verificar se já causou dano neste frame
         boss_id = "boss_dracula"
         if boss_id in self.current_whip_attack.damage_dealt:
             return False
-        
+
         # Verificar colisão com o boss
         boss = boss_manager.current_boss
         if boss and boss.active and boss.phase == "fighting":
@@ -445,7 +447,7 @@ class PlayerAttackSystem:
                     self.current_whip_attack.damage_dealt.append(boss_id)
                     self.current_whip_attack.screen_shake = 15
                     return True
-        
+
         return False
 
     def draw(self, screen):
@@ -505,14 +507,19 @@ class KnifeProjectile:
 
 class DraculaBattle:
     def __init__(
-        self, screen_width, screen_height, language_manager, fireball_sprite=None,resource_manager=None
+        self,
+        screen_width,
+        screen_height,
+        language_manager,
+        fireball_sprite=None,
+        resource_manager=None,
     ):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.active = True
         self.scroll_locked = True
         self.language_manager = language_manager
-        
+
         if resource_manager and "fireball" in resource_manager.sprites:
             self.fireball_sprite = resource_manager.sprites["fireball"]
         else:
@@ -604,16 +611,16 @@ class DraculaBattle:
     def take_whip_damage(self, damage=2):
         if self.invulnerable_timer > 0:
             return False
-        
+
         self.boss_hp -= damage
         self.invulnerable_timer = 30  # Invulnerabilidade mais longa para chicote
         self.flash_timer = 20  # Flash mais longo
         self.screen_shake = 25  # Shake mais intenso
-        
+
         # Efeito especial para chicote
         if self.boss_hp <= self.max_hp // 2:
             self.attack_interval = max(40, self.attack_interval - 3)
-        
+
         return True
 
     def update_fighting(self, player_rect, player_projectiles):
@@ -702,7 +709,7 @@ class DraculaBattle:
         return False
 
     def draw(self, screen, dracula_sprites=None):
-        
+
         shake_x = (
             randint(-self.screen_shake // 2, self.screen_shake // 2)
             if self.screen_shake > 0
@@ -767,7 +774,7 @@ class DraculaBattle:
         # Draw battle instructions
         if self.phase == "fighting":
             self.draw_battle_instructions(screen)
-        
+
     def draw_health_bar(self, screen):
         bar_width = 300
         bar_height = 25
@@ -882,7 +889,7 @@ class BossManager:
 
             if not still_active and not self.boss_reward_given:
                 self.boss_defeated = True
-                self.boss_victory_timer = 120
+                self.boss_victory_timer = 300
                 self.boss_reward_given = True
                 return "boss_defeated"
 
@@ -1124,6 +1131,7 @@ class BloodLostGame:
         self.boss_manager = BossManager(self.language_manager)
 
         self.player_animation_state = PlayerAnimationState()
+        self.player_animation_state.victory_auto_return = 300
 
         self.game_state = "menu"
         self.game_active = False
@@ -1881,8 +1889,13 @@ class BloodLostGame:
                 self.handle_game_events(event)
             elif self.game_state == "game_over":
                 self.handle_game_over_events(event)
+            elif self.game_state == "victory":
+                self.handle_victory_events(event)
 
         return True
+
+    def handle_victory_events(self, event):
+        pass
 
     def handle_menu_events(self, event):
         if event.type == pygame.KEYDOWN:
@@ -1975,6 +1988,7 @@ class BloodLostGame:
 
     def start_game(self):
         self.game_state = "playing"
+        self.victory_timer = 0
         self.obstacle_list.clear()
         self.player_projectiles.clear()
         self.shoot_cooldown = 0
@@ -2037,7 +2051,15 @@ class BloodLostGame:
         else:
             return self.resource_manager.sprites["background_phase_0"]
 
+
     def update_game(self):
+        if self.game_state == "victory":
+            self.victory_timer += 1
+            if self.victory_timer >= 300:
+                self.game_state = "menu"
+                self.reset_game_state()
+            return
+
         if self.game_state == "playing":
             if self.player_invulnerable_timer > 0:
                 self.player_invulnerable_timer -= 1
@@ -2061,7 +2083,6 @@ class BloodLostGame:
                 if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                     self.player_rect.x += 5
                     self.last_move_direction = "right"
-                
 
             if keys[pygame.K_z]:
                 self.handle_whip_attack()
@@ -2073,7 +2094,9 @@ class BloodLostGame:
 
             self.update_projectiles()
 
-            self.attack_system.update(self.obstacle_list, self.boss_manager, self.resource_manager.sounds)
+            self.attack_system.update(
+                self.obstacle_list, self.boss_manager, self.resource_manager.sounds
+            )
 
             boss_status = self.boss_manager.update(
                 self.player_rect, self.player_projectiles
@@ -2081,15 +2104,24 @@ class BloodLostGame:
 
             if boss_status == "boss_defeated":
                 self.score += 30  # Bonus for defeating Dracula
+                # CORREÇÃO: Não fazer mais nada aqui, deixar o boss_manager controlar
 
             elif boss_status == "boss_complete":
+                # CORREÇÃO: Ir imediatamente para vitória quando o boss é completamente derrotado
                 if "boss_music" in self.resource_manager.sounds:
                     self.resource_manager.sounds["boss_music"].stop()
-                if "bg_music" in self.resource_manager.sounds:
-                    self.resource_manager.sounds["bg_music"].play(loops=-1)
-                self.boss_music_playing = False
-                self.music_playing = True
 
+                # Atualizar recorde se necessário
+                if self.highscore_manager.update_if_record(self.score):
+                    pass
+
+                # IR IMEDIATAMENTE para tela de vitória
+                self.game_state = "victory"
+                self.victory_timer = 0
+                self.stop_all_music()
+                return  # SAIR IMEDIATAMENTE da função
+
+            # Só continuar processando o jogo se NÃO estivermos indo para vitória
             if self.boss_manager.is_boss_active():
                 current_bg = self.get_current_background()
                 self.screen.blit(current_bg, (0, 0))
@@ -2118,9 +2150,7 @@ class BloodLostGame:
                     self.bg_x_pos = 0
 
                 self.screen.blit(current_bg, (self.bg_x_pos, 0))
-                self.screen.blit(
-                    current_bg, (self.bg_x_pos + current_bg.get_width(), 0)
-                )
+                self.screen.blit(current_bg, (self.bg_x_pos + current_bg.get_width(), 0))
 
                 self.update_obstacles()
 
@@ -2213,6 +2243,8 @@ class BloodLostGame:
             self.draw_settings()
         elif self.game_state == "game_over":
             self.draw_game_over()
+        elif self.game_state == "victory":
+            self.draw_victory()
 
     def run(self):
         if "menu_music" in self.resource_manager.sounds:
@@ -2233,6 +2265,79 @@ class BloodLostGame:
 
         pygame.quit()
         exit()
+
+    def draw_victory(self):
+        # Usar background da fase atual
+        current_bg = self.get_current_background()
+        self.screen.blit(current_bg, (0, 0))
+
+        # Overlay escuro
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.set_alpha(150)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+
+        # Título de vitória
+        victory_text = (
+            "DRÁCULA DERROTADO!"
+            if self.language_manager.current_language == "pt"
+            else "DRACULA DEFEATED!"
+        )
+        victory_surf = self.resource_manager.fonts["title"].render(
+            victory_text, False, GOLD
+        )
+        victory_rect = victory_surf.get_rect(center=(400, 150))
+
+        # Sombra do título
+        shadow_surf = self.resource_manager.fonts["title"].render(
+            victory_text, False, BLACK
+        )
+        shadow_rect = shadow_surf.get_rect(center=(402, 152))
+        self.screen.blit(shadow_surf, shadow_rect)
+        self.screen.blit(victory_surf, victory_rect)
+
+        # Mostrar pontuação final
+        score_text = self.language_manager.get_text("your_score").format(self.score)
+        score_surf = self.resource_manager.fonts["large"].render(
+            score_text, False, WHITE
+        )
+        score_rect = score_surf.get_rect(center=(400, 250))
+        self.screen.blit(score_surf, score_rect)
+
+        # Mostrar se é novo recorde
+        if self.highscore_manager.is_new_record(self.score):
+            if (pygame.time.get_ticks() // 500) % 2:
+                record_surf = self.resource_manager.fonts["medium"].render(
+                    self.language_manager.get_text("new_record"), False, (255, 50, 50)
+                )
+                record_rect = record_surf.get_rect(center=(400, 300))
+                self.screen.blit(record_surf, record_rect)
+
+        # Instruções
+        instruction_text = (
+            "Retornando ao menu principal..."
+            if self.language_manager.current_language == "pt"
+            else "Returning to main menu..."
+        )
+        instruction_surf = self.resource_manager.fonts["small"].render(
+            instruction_text, False, GRAY
+        )
+        instruction_rect = instruction_surf.get_rect(center=(400, 400))
+        self.screen.blit(instruction_surf, instruction_rect)
+
+        # Timer automático
+        time_left = (300 - self.victory_timer) // 60
+        if time_left > 0:
+            auto_text = (
+                f"Retorno automático em: {time_left}s"
+                if self.language_manager.current_language == "pt"
+                else f"Auto return in: {time_left}s"
+            )
+            auto_surf = self.resource_manager.fonts["small"].render(
+                auto_text, False, DARK_GRAY
+            )
+            auto_rect = auto_surf.get_rect(center=(400, 450))
+            self.screen.blit(auto_surf, auto_rect)
 
 
 def main():
