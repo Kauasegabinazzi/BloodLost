@@ -36,7 +36,7 @@ PHASE_NAMES = {
     ],
 }
 
-BOSS_TRIGGER = 5
+BOSS_TRIGGER = 10
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
