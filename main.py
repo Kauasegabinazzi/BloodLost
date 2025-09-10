@@ -2070,7 +2070,12 @@ class BloodLostGame:
         self.main_menu_playing = True
 
     def get_current_background(self):
-        background_name = self.phase_manager.get_background_name()
+        # Durante a batalha do boss, usar sempre o background do Dracula's Lair
+        if self.boss_manager.is_boss_active() or self.boss_manager.boss_victory_timer > 0:
+            background_name = "background_phase_4"  # Dracula's Lair
+        else:
+            background_name = self.phase_manager.get_background_name()
+        
         if background_name in self.resource_manager.sprites:
             return self.resource_manager.sprites[background_name]
         else:
@@ -2085,11 +2090,10 @@ class BloodLostGame:
             self.victory_timer += 1
             if self.victory_timer >= 300:
                 self.game_state = "menu"
-                self.victory_triggered = False  # Reset da flag
+                self.victory_triggered = False
                 self.reset_game_state()
-            return  # SAIR IMEDIATAMENTE
+            return
 
-        # Se não está no estado de jogo, não processar
         if self.game_state != "playing":
             return
 
@@ -2114,7 +2118,6 @@ class BloodLostGame:
 
             # Check for boss completion IMMEDIATELY
             if boss_status == "boss_complete":
-                # PARAR TUDO IMEDIATAMENTE
                 self.game_state = 'victory'
                 self.victory_triggered = True
                 self.boss_manager.current_boss = None
@@ -2126,23 +2129,20 @@ class BloodLostGame:
                 if "boss_music" in self.resource_manager.sounds:
                     self.resource_manager.sounds["boss_music"].stop()
 
-                # Atualizar recorde se necessário
                 if self.highscore_manager.update_if_record(self.score):
                     pass
 
-                # IR IMEDIATAMENTE para tela de vitória
                 self.game_state = "victory"
                 self.victory_timer = 0
                 self.stop_all_music()
-                return  # SAIR IMEDIATAMENTE - não processar mais nada
+                return
 
             if boss_status == "boss_defeated":
-                self.score += 30  # Bonus for defeating Dracula
+                self.score += 30
                 self.game_state = 'victory'
                 self.stop_all_music()
-                # Continue normalmente até boss_complete
 
-            # Só processar controles e lógica do jogo se NÃO estamos indo para vitória
+            # Controles do jogador
             keys = pygame.key.get_pressed()
             if self.boss_manager.is_boss_active():
                 if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -2167,11 +2167,18 @@ class BloodLostGame:
                 self.obstacle_list, self.boss_manager, self.resource_manager.sounds
             )
 
-            # Renderização e lógica do jogo
-            if self.boss_manager.is_boss_active():
-                current_bg = self.get_current_background()
-                self.screen.blit(current_bg, (0, 0))
-                self.obstacle_list.clear()  # Limpar obstáculos durante boss
+            # Renderização - BACKGROUND FIXO DURANTE BOSS
+            if self.boss_manager.is_boss_active() or self.boss_manager.boss_victory_timer > 0:
+                # Durante boss battle, usar background fixo do Dracula's Lair
+                current_bg = self.resource_manager.sprites.get("background_phase_4", 
+                                                            self.resource_manager.sprites["background_phase_0"])
+                # Limpar a tela completamente antes de desenhar o background fixo
+                self.screen.fill((0, 0, 0))  # Tela preta primeiro
+                self.screen.blit(current_bg, (0, 0))  # Background estático sem scroll
+                self.obstacle_list.clear()
+                
+                # Reset da posição do background para evitar problemas quando sair do boss
+                self.bg_x_pos = 0
 
                 if (
                     self.player_invulnerable_timer <= 0
@@ -2190,8 +2197,7 @@ class BloodLostGame:
                     return
 
             else:
-                # Lógica normal do jogo (movimento de fundo, obstáculos, etc.)
-
+                # Lógica normal do jogo com scroll do background
                 self.bg_x_pos -= 2
                 current_bg = self.get_current_background()
                 if self.bg_x_pos <= -current_bg.get_width():
@@ -2222,8 +2228,11 @@ class BloodLostGame:
             self.draw_projectiles()
             self.score = self.display_score()
             self.score_boss = self.display_score_boss()
-            phase_changed = self.phase_manager.update_phase(self.score)
-            self.phase_manager.update_notification_timer()
+            
+            # Só atualizar fase se não estiver no boss
+            if not self.boss_manager.is_boss_active() and self.boss_manager.boss_victory_timer <= 0:
+                phase_changed = self.phase_manager.update_phase(self.score)
+                self.phase_manager.update_notification_timer()
 
             if self.player_gravity < 0:
                 self.player_gravity += GRAVITY_ASCEND
@@ -2239,7 +2248,10 @@ class BloodLostGame:
             self.render_player_and_effects()
             self.boss_manager.draw(self.screen, self.dracula_sprites)
             self.attack_system.draw_ui(self.screen, self.resource_manager.fonts)
-            self.draw_phase_notification()
+            
+            # Só mostrar notificação de fase se não estiver no boss
+            if not self.boss_manager.is_boss_active() and self.boss_manager.boss_victory_timer <= 0:
+                self.draw_phase_notification()
 
     def render_player_and_effects(self):
         self.draw_player()
