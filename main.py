@@ -188,6 +188,8 @@ TEXTS = {
     },
 }
 
+PLAYER_START_X = 300
+PLAYER_START_Y = 245
 
 class PlayerAnimationState:
     def __init__(self):
@@ -1358,7 +1360,7 @@ class BloodLostGame:
 
     def setup_player(self):
         self.player_rect = self.resource_manager.sprites["player_idle"].get_rect(
-            topleft=(300, 245)
+            topleft=(PLAYER_START_X, PLAYER_START_Y)
         )
         self.current_player_surface = self.resource_manager.sprites["player_idle"]
 
@@ -1480,7 +1482,26 @@ class BloodLostGame:
             projectile.update()
 
             if projectile.active:
-                active_projectiles.append(projectile)
+                # Verificar colisão com inimigos normais (obstacles)
+                hit_enemy = False
+                for obstacle in self.obstacle_list[:]:  # Use slice to avoid modification during iteration
+                    if projectile.rect.colliderect(obstacle["rect"]):
+                        # Projétil atingiu um inimigo
+                        projectile.active = False
+                        self.obstacle_list.remove(obstacle)  # Remove o inimigo
+                        hit_enemy = True
+                        
+                        # Tocar som de acerto se disponível
+                        if "whip_hit" in self.resource_manager.sounds:
+                            self.resource_manager.sounds["whip_hit"].play()
+                        
+                        # Adicionar pontos ou efeitos se desejar
+                        # self.score += 1  # Exemplo: adicionar pontos por matar inimigo
+                        break
+                
+                # Só manter o projétil ativo se não atingiu nenhum inimigo
+                if not hit_enemy:
+                    active_projectiles.append(projectile)
 
         self.player_projectiles = active_projectiles
 
@@ -2032,6 +2053,8 @@ class BloodLostGame:
 
         self.start_time = int(pygame.time.get_ticks() / 1000)
         self.new_record_timer = 0
+        self.player_rect.x = PLAYER_START_X
+        self.player_rect.y = PLAYER_START_Y
         self.player_rect.bottom = GROUND_Y
         self.player_gravity = 0
 
@@ -2060,6 +2083,8 @@ class BloodLostGame:
         self.player_projectiles.clear()
         self.shoot_cooldown = 0
         self.victory_triggered = False
+        self.player_rect.x = PLAYER_START_X
+        self.player_rect.y = PLAYER_START_Y
         self.player_rect.bottom = GROUND_Y
         self.player_gravity = 0
 
