@@ -188,6 +188,7 @@ TEXTS = {
     },
 }
 
+
 class PlayerAnimationState:
     def __init__(self):
         self.current_state = "walking"
@@ -224,6 +225,7 @@ class PlayerAnimationState:
 
     def get_frame_counter(self):
         return self.frame_counter
+
 
 class WhipAttack:
     def __init__(self, x, y, direction="right"):
@@ -330,6 +332,7 @@ class WhipAttack:
 
                     pygame.draw.circle(screen, (255, 215, 0), end_pos, 3)
                     pygame.draw.circle(screen, (255, 255, 255), end_pos, 2)
+
 
 class PlayerAttackSystem:
     def __init__(self, language_manager):
@@ -468,6 +471,7 @@ class PlayerAttackSystem:
             screen.blit(shadow_surf, shadow_rect)
             screen.blit(combo_surf, combo_rect)
 
+
 class KnifeProjectile:
     def __init__(self, x, y, knife_sprite=None):
         self.x = x
@@ -499,6 +503,7 @@ class KnifeProjectile:
                 center=(self.x + self.width // 2, self.y + self.height // 2)
             )
             screen.blit(self.original_sprite, sprite_rect)
+
 
 class DraculaBattle:
     def __init__(
@@ -851,6 +856,7 @@ class DraculaBattle:
 
             screen.blit(text, (20, SCREEN_HEIGHT - len(instructions) * 22 + i * 22))
 
+
 class BossManager:
     def __init__(self, language_manager):
         self.current_boss = None
@@ -859,7 +865,7 @@ class BossManager:
         self.boss_reward_given = False
         self.language_manager = language_manager
         self.fireball_sprite = None
-        
+
     def reset_boss_state(self):
         """Reset completo do estado do boss"""
         self.current_boss = None
@@ -944,6 +950,7 @@ class BossManager:
             screen.blit(shadow_text, shadow_rect)
             screen.blit(victory_text, victory_rect)
 
+
 class LanguageManager:
     def __init__(self):
         self.current_language = "pt"
@@ -978,6 +985,7 @@ class LanguageManager:
         if 0 <= phase_index < len(PHASE_NAMES[self.current_language]):
             return PHASE_NAMES[self.current_language][phase_index]
         return "Unknown Phase"
+
 
 class HighscoreManager:
     def __init__(self, filename="highscore.json"):
@@ -1014,6 +1022,7 @@ class HighscoreManager:
 
     def reset(self):
         self.save(0)
+
 
 class ResourceManager:
     def __init__(self):
@@ -1055,6 +1064,7 @@ class ResourceManager:
         except:
             return pygame.font.Font(None, size)
 
+
 class AnimationManager:
     def __init__(self):
         self.animations = {}
@@ -1076,6 +1086,7 @@ class AnimationManager:
         if name in self.animations:
             return self.animations[name][int(self.current_frames[name])]
         return None
+
 
 class PhaseManager:
     def __init__(self, language_manager):
@@ -1117,6 +1128,7 @@ class PhaseManager:
             phase_index = self.current_phase
         return f"background_phase_{phase_index}"
 
+
 class BloodLostGame:
     def __init__(self):
         pygame.init()
@@ -1140,7 +1152,7 @@ class BloodLostGame:
         self.victory_triggered = False
 
         self.score = 0
-        self.score_boss = 0 
+        self.score_boss = 0
         self.start_time = 0
         self.bg_x_pos = 0
         self.new_record_timer = 0
@@ -1547,16 +1559,16 @@ class BloodLostGame:
 
         return current_time
 
-    def display_score_boss(self):   
+    def display_score_boss(self):
         """Display score specifically for boss battles"""
         current_time = int(pygame.time.get_ticks() / 1000) - self.start_time
-        
+
         # Update score_boss to match current game time
         self.score_boss = current_time
-        
+
         # Return the current time for use in other methods
         return current_time
-    
+
     def draw_phase_notification(self):
         if self.phase_manager.show_phase_notification:
             notification_surface = pygame.Surface((400, 100))
@@ -1604,36 +1616,24 @@ class BloodLostGame:
             self.language_manager.get_text("start"),
             self.language_manager.get_text("highscores"),
             self.language_manager.get_text("settings"),
-            self.language_manager.get_text("quit"),
         ]
 
         for i, option in enumerate(menu_options):
             color = YELLOW if i == self.selected_option else GRAY
 
             if i == self.selected_option:
+                # Sombra do texto
                 shadow_surf = self.resource_manager.fonts["medium"].render(
                     option, False, BLACK
                 )
                 shadow_rect = shadow_surf.get_rect(center=(402, 232 + i * 50))
                 self.screen.blit(shadow_surf, shadow_rect)
 
-                indicator_surf = self.resource_manager.fonts["medium"].render(
-                    ">", False, YELLOW
-                )
-                indicator_rect = indicator_surf.get_rect(center=(300, 230 + i * 50))
-                self.screen.blit(indicator_surf, indicator_rect)
-
             option_surf = self.resource_manager.fonts["medium"].render(
                 option, False, color
             )
             option_rect = option_surf.get_rect(center=(400, 230 + i * 50))
             self.screen.blit(option_surf, option_rect)
-
-        instruction_surf = self.resource_manager.fonts["small"].render(
-            self.language_manager.get_text("navigate"), False, DARK_GRAY
-        )
-        instruction_rect = instruction_surf.get_rect(center=(400, 450))
-        self.screen.blit(instruction_surf, instruction_rect)
 
     def draw_highscores(self):
         self.screen.blit(self.resource_manager.sprites["menu_bg"], (0, 0))
@@ -1752,9 +1752,6 @@ class BloodLostGame:
         settings_options = [
             self.language_manager.get_text("volume").format(int(self.volume * 100)),
             f"{self.language_manager.get_text('language')}: {current_lang_text}",
-            # self.language_manager.get_text("difficulty"),
-            self.language_manager.get_text("reset_highscore"),
-            self.language_manager.get_text("reset_boss"),
             self.language_manager.get_text("back"),
         ]
 
@@ -1767,35 +1764,58 @@ class BloodLostGame:
                 shadow_rect = shadow_surf.get_rect(center=(402, 162 + i * 40))
                 self.screen.blit(shadow_surf, shadow_rect)
 
-                indicator_surf = self.resource_manager.fonts["medium"].render(
-                    ">", False, YELLOW
-                )
-                indicator_rect = indicator_surf.get_rect(center=(200, 160 + i * 40))
-                self.screen.blit(indicator_surf, indicator_rect)
+                # Setas direcionais apenas para volume (i == 0) e idioma (i == 1)
+                if i == 0:  # Volume
+                    # Seta esquerda (diminuir) - só mostra se volume > 0
+                    if self.volume > 0:
+                        left_arrow = self.resource_manager.fonts["medium"].render(
+                            " < ", False, YELLOW
+                        )
+                        left_arrow_rect = left_arrow.get_rect(
+                            center=(280, 160 + i * 40)
+                        )
+                        self.screen.blit(left_arrow, left_arrow_rect)
+
+                    # Seta direita (aumentar) - só mostra se volume < 100%
+                    if self.volume < 1.0:
+                        right_arrow = self.resource_manager.fonts["medium"].render(
+                            " > ", False, YELLOW
+                        ) 
+                        right_arrow_rect = right_arrow.get_rect(
+                            center=(520, 160 + i * 40)
+                        )
+                        self.screen.blit(right_arrow, right_arrow_rect)
+
+                elif i == 1:  # Idioma - SETAS MAIS SEPARADAS
+                    # Seta esquerda - posição mais à esquerda
+                    if self.language_manager.current_language == "en":
+                        left_arrow = self.resource_manager.fonts["medium"].render(
+                            " < ", False, YELLOW
+                        )
+                        left_arrow_rect = left_arrow.get_rect(
+                            center=(240, 160 + i * 40)  # Movido de 280 para 240
+                        )
+                        self.screen.blit(left_arrow, left_arrow_rect)
+
+                    # Seta direita - posição mais à direita
+                    if self.language_manager.current_language == "pt":
+                        right_arrow = self.resource_manager.fonts["medium"].render(
+                            " > ", False, YELLOW
+                        )
+                        right_arrow_rect = right_arrow.get_rect(
+                            center=(560, 160 + i * 40)  # Movido de 520 para 560
+                        )
+                        self.screen.blit(right_arrow, right_arrow_rect)
+
             else:
-                color = (255, 100, 100) if i in [3, 4] else GRAY
+                # Cor especial para opções de reset
+                color = (255, 100, 100) if i in [2, 3] else GRAY
 
             option_surf = self.resource_manager.fonts["medium"].render(
                 option, False, color
             )
             option_rect = option_surf.get_rect(center=(400, 160 + i * 40))
             self.screen.blit(option_surf, option_rect)
-
-        instructions = [
-            self.language_manager.get_text("volume_instruction"),
-            "Use A/D ou SETAS para trocar idioma",
-            "Dificuldade: Normal (fixo)",
-            self.language_manager.get_text("reset_record_warning"),
-            self.language_manager.get_text("reset_boss_warning"),
-            self.language_manager.get_text("back_menu"),
-        ]
-
-        if self.selected_setting < len(instructions):
-            instruction_surf = self.resource_manager.fonts["small"].render(
-                instructions[self.selected_setting], False, DARK_GRAY
-            )
-            instruction_rect = instruction_surf.get_rect(center=(400, 420))
-            self.screen.blit(instruction_surf, instruction_rect)
 
     def draw_game_over(self):
         self.screen.blit(self.resource_manager.sprites["gameover_bg"], (0, 0))
@@ -1935,32 +1955,28 @@ class BloodLostGame:
     def handle_settings_events(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_UP, pygame.K_w]:
-                self.selected_setting = (self.selected_setting - 1) % 6
+                self.selected_setting = (self.selected_setting - 1) % 3  # Mudança aqui: 3 opções apenas
             elif event.key in [pygame.K_DOWN, pygame.K_s]:
-                self.selected_setting = (self.selected_setting + 1) % 6
+                self.selected_setting = (self.selected_setting + 1) % 3  # Mudança aqui: 3 opções apenas
             elif event.key == pygame.K_ESCAPE:
                 self.game_state = "menu"
             elif event.key == pygame.K_RETURN:
-                if self.selected_setting == 3:
-                    self.highscore_manager.reset()
-                elif self.selected_setting == 4:
-                    self.boss_manager.boss_defeated = False
-                elif self.selected_setting == 5:
-                    self.game_state = "menu"
+                if self.selected_setting == 2:  # Opção "Voltar" (índice 2)
+                    self.game_state = "menu"  # Volta ao menu principal
             elif event.key in [pygame.K_LEFT, pygame.K_a]:
-                if self.selected_setting == 0:
+                if self.selected_setting == 0:  # Volume
                     self.volume = max(0.0, self.volume - 0.1)
                     self.update_volume()
-                elif self.selected_setting == 1:
+                elif self.selected_setting == 1:  # Idioma
                     new_lang = (
                         "pt" if self.language_manager.current_language == "en" else "en"
                     )
                     self.language_manager.set_language(new_lang)
             elif event.key in [pygame.K_RIGHT, pygame.K_d]:
-                if self.selected_setting == 0:
+                if self.selected_setting == 0:  # Volume
                     self.volume = min(1.0, self.volume + 0.1)
                     self.update_volume()
-                elif self.selected_setting == 1:
+                elif self.selected_setting == 1:  # Idioma
                     new_lang = (
                         "en" if self.language_manager.current_language == "pt" else "pt"
                     )
@@ -2023,11 +2039,13 @@ class BloodLostGame:
         self.player_damaged = False
 
         self.phase_manager = PhaseManager(self.language_manager)
-        
+
         # CORREÇÃO: Reset completo do boss manager no início do jogo
         self.boss_manager = BossManager(self.language_manager)
         if "fireball" in self.resource_manager.sprites:
-            self.boss_manager.set_fireball_sprite(self.resource_manager.sprites["fireball"])
+            self.boss_manager.set_fireball_sprite(
+                self.resource_manager.sprites["fireball"]
+            )
 
         if "menu_music" in self.resource_manager.sounds:
             self.resource_manager.sounds["menu_music"].stop()
@@ -2052,11 +2070,13 @@ class BloodLostGame:
         self.last_move_direction = "right"
 
         self.phase_manager = PhaseManager(self.language_manager)
-        
+
         # CORREÇÃO: Reset completo do boss manager
         self.boss_manager = BossManager(self.language_manager)
         if "fireball" in self.resource_manager.sprites:
-            self.boss_manager.set_fireball_sprite(self.resource_manager.sprites["fireball"])
+            self.boss_manager.set_fireball_sprite(
+                self.resource_manager.sprites["fireball"]
+            )
 
         if "bg_music" in self.resource_manager.sounds:
             self.resource_manager.sounds["bg_music"].stop()
@@ -2071,11 +2091,14 @@ class BloodLostGame:
 
     def get_current_background(self):
         # Durante a batalha do boss, usar sempre o background do Dracula's Lair
-        if self.boss_manager.is_boss_active() or self.boss_manager.boss_victory_timer > 0:
+        if (
+            self.boss_manager.is_boss_active()
+            or self.boss_manager.boss_victory_timer > 0
+        ):
             background_name = "background_phase_4"  # Dracula's Lair
         else:
             background_name = self.phase_manager.get_background_name()
-        
+
         if background_name in self.resource_manager.sprites:
             return self.resource_manager.sprites[background_name]
         else:
@@ -2118,7 +2141,7 @@ class BloodLostGame:
 
             # Check for boss completion IMMEDIATELY
             if boss_status == "boss_complete":
-                self.game_state = 'victory'
+                self.game_state = "victory"
                 self.victory_triggered = True
                 self.boss_manager.current_boss = None
                 self.boss_manager.boss_victory_timer = 0
@@ -2139,7 +2162,7 @@ class BloodLostGame:
 
             if boss_status == "boss_defeated":
                 self.score += 30
-                self.game_state = 'victory'
+                self.game_state = "victory"
                 self.stop_all_music()
 
             # Controles do jogador
@@ -2168,15 +2191,20 @@ class BloodLostGame:
             )
 
             # Renderização - BACKGROUND FIXO DURANTE BOSS
-            if self.boss_manager.is_boss_active() or self.boss_manager.boss_victory_timer > 0:
+            if (
+                self.boss_manager.is_boss_active()
+                or self.boss_manager.boss_victory_timer > 0
+            ):
                 # Durante boss battle, usar background fixo do Dracula's Lair
-                current_bg = self.resource_manager.sprites.get("background_phase_4", 
-                                                            self.resource_manager.sprites["background_phase_0"])
+                current_bg = self.resource_manager.sprites.get(
+                    "background_phase_4",
+                    self.resource_manager.sprites["background_phase_0"],
+                )
                 # Limpar a tela completamente antes de desenhar o background fixo
                 self.screen.fill((0, 0, 0))  # Tela preta primeiro
                 self.screen.blit(current_bg, (0, 0))  # Background estático sem scroll
                 self.obstacle_list.clear()
-                
+
                 # Reset da posição do background para evitar problemas quando sair do boss
                 self.bg_x_pos = 0
 
@@ -2228,9 +2256,12 @@ class BloodLostGame:
             self.draw_projectiles()
             self.score = self.display_score()
             self.score_boss = self.display_score_boss()
-            
+
             # Só atualizar fase se não estiver no boss
-            if not self.boss_manager.is_boss_active() and self.boss_manager.boss_victory_timer <= 0:
+            if (
+                not self.boss_manager.is_boss_active()
+                and self.boss_manager.boss_victory_timer <= 0
+            ):
                 phase_changed = self.phase_manager.update_phase(self.score)
                 self.phase_manager.update_notification_timer()
 
@@ -2248,9 +2279,12 @@ class BloodLostGame:
             self.render_player_and_effects()
             self.boss_manager.draw(self.screen, self.dracula_sprites)
             self.attack_system.draw_ui(self.screen, self.resource_manager.fonts)
-            
+
             # Só mostrar notificação de fase se não estiver no boss
-            if not self.boss_manager.is_boss_active() and self.boss_manager.boss_victory_timer <= 0:
+            if (
+                not self.boss_manager.is_boss_active()
+                and self.boss_manager.boss_victory_timer <= 0
+            ):
                 self.draw_phase_notification()
 
     def render_player_and_effects(self):
@@ -2406,6 +2440,7 @@ class BloodLostGame:
             )
             auto_rect = auto_surf.get_rect(center=(400, 450))
             self.screen.blit(auto_surf, auto_rect)
+
 
 def main():
     try:
