@@ -1978,9 +1978,9 @@ class BloodLostGame:
                 and self.player_rect.bottom >= GROUND_Y
             ):
                 self.player_gravity = JUMP_FORCE
-            elif event.key == pygame.K_x:
+            elif event.key == pygame.K_e:
                 self.throw_knife()
-            elif event.key == pygame.K_z:
+            elif event.key == pygame.K_q:
                 self.handle_whip_attack()
             elif event.key == pygame.K_ESCAPE:
                 self.game_state = "menu"
@@ -2153,7 +2153,7 @@ class BloodLostGame:
                     self.player_rect.x += 5
                     self.last_move_direction = "right"
 
-            if keys[pygame.K_z]:
+            if keys[pygame.K_q]:
                 self.handle_whip_attack()
 
             if self.player_rect.x < 0:
