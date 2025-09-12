@@ -1261,7 +1261,6 @@ class BloodLostGame:
             self.dracula_sprites["attack"] = attack_sprite
             rm.load_sprite("fireball", "sprites\\Dracula\\foguinho.png", 1.5)
         except:
-            print("Using placeholder sprites for Dracula")
             # Create placeholder sprites if files not found
             idle_placeholder = pygame.Surface((90, 120))
             idle_placeholder.fill((150, 0, 100))
@@ -2205,8 +2204,6 @@ class BloodLostGame:
 
             # Check for Dracula boss trigger - COM DEBUG TEMPORÁRIO
             if self.boss_manager.should_trigger_boss(self.score):
-                print(f"Boss trigger ativado! Score: {self.score}, Boss defeated: {self.boss_manager.boss_defeated}")
-                print(f"Current boss: {self.boss_manager.current_boss}")
                 
                 self.boss_manager.start_boss_battle()
                 if "bg_music" in self.resource_manager.sounds:
@@ -2271,7 +2268,6 @@ class BloodLostGame:
             if killed_by_projectiles > 0:
                 self.score += POINTS_KILL_ENEMY * killed_by_projectiles  
                 self.enemies_killed += killed_by_projectiles
-                print(f"Score atual após faca: {self.score}")  # DEBUG
 
             # Atualizar sistema de chicote e contar inimigos mortos por chicote
             killed_by_whip = self.attack_system.update(
@@ -2280,7 +2276,6 @@ class BloodLostGame:
             if killed_by_whip and killed_by_whip > 0:
                 self.score += POINTS_KILL_ENEMY * killed_by_whip
                 self.enemies_killed += killed_by_whip
-                print(f"Score atual após chicote: {self.score}")  # DEBUG
 
             # Renderização - BACKGROUND FIXO DURANTE BOSS
             if (
@@ -2335,7 +2330,6 @@ class BloodLostGame:
                 if jumped_enemies > 0:
                     self.score += POINTS_JUMP_ENEMY * jumped_enemies
                     self.enemies_jumped += jumped_enemies
-                    print(f"Pulou sobre {jumped_enemies} inimigos! Score atual: {self.score}")  # DEBUG
 
                 if self.player_invulnerable_timer <= 0 and not collision_result:
                     self.player_invulnerable_timer = 60
@@ -2459,7 +2453,6 @@ class BloodLostGame:
 
             self.update_audio()
             if self.victory_triggered and self.game_state != "victory":
-                print(f"Forçando estado para victory. Estado atual: {self.game_state}")
                 self.game_state = "victory"
             self.update_game()
             self.render()
