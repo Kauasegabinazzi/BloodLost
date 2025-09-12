@@ -1173,6 +1173,10 @@ class BloodLostGame:
         self.start_time = 0
         self.bg_x_pos = 0
         self.new_record_timer = 0
+        
+        self.loading_screen_active = False
+        self.loading_timer = 0
+        self.loading_duration = 1800 
 
         self.player_gravity = 0
         self.enemies_jumped = 0
@@ -1349,6 +1353,7 @@ class BloodLostGame:
         )
         rm.load_sound("menu_music", "music\\main-menu.mp3", self.volume)
         rm.load_sound("boss_music", "music\\Prologue.mp3", self.volume)
+        rm.load_sound("loading_music", "music\\Loading.mp3", self.volume)
 
         rm.load_sound("whip_attack", "music\\whip.mp3", self.volume * 0.7)
         rm.load_sound("whip_hit", "music\\whipHit.mp3", self.volume * 0.6)
@@ -1958,6 +1963,18 @@ class BloodLostGame:
             if event.type == pygame.QUIT:
                 return False
 
+            # Durante o loading, apenas permitir quit (opcionalmente pular com SPACE)
+            if self.loading_screen_active:
+                if event.type == pygame.KEYDOWN:
+                    # OPCIONAL: Permitir pular o loading com SPACE
+                    if event.key == pygame.K_SPACE:
+                        if "loading_music" in self.resource_manager.sounds:
+                            self.resource_manager.sounds["loading_music"].stop()
+                        self.loading_screen_active = False
+                        self.loading_timer = 0
+                        self.initialize_game_after_loading()
+                continue
+                
             if self.game_state == "menu":
                 self.handle_menu_events(event)
             elif self.game_state == "highscores":
@@ -2066,16 +2083,34 @@ class BloodLostGame:
                 self.reset_game_state()
 
     def start_game(self):
+        # Ativar tela de loading PRIMEIRO
+        self.loading_screen_active = True
+        self.loading_timer = 0
+        self.game_state = "loading"  # Novo estado
+        
+        # Parar música do menu
+        if "menu_music" in self.resource_manager.sounds:
+            self.resource_manager.sounds["menu_music"].stop()
+        self.main_menu_playing = False
+        
+        if "loading_music" in self.resource_manager.sounds:
+            self.resource_manager.sounds["loading_music"].play(loops=-1)
+        
+        # Limpeza básica inicial
+        self.obstacle_list.clear()
+        self.player_projectiles.clear()
+
+    def initialize_game_after_loading(self):
+        """Inicializa o jogo após a tela de loading"""
         self.game_state = "playing"
         self.victory_timer = 0
         self.victory_triggered = False
-        self.obstacle_list.clear()
-        self.player_projectiles.clear()
+        
         self.shoot_cooldown = 0
         self.enemies_jumped = 0
         self.enemies_killed = 0
         
-        # RESET DO SCORE - CORREÇÃO PRINCIPAL
+        # RESET DO SCORE
         self.score = 0
         self.score_boss = 0
         
@@ -2097,11 +2132,10 @@ class BloodLostGame:
 
         self.phase_manager = PhaseManager(self.language_manager)
 
-        # CORREÇÃO: Reset completo do boss manager usando o novo método
+        # Reset completo do boss manager
         if hasattr(self.boss_manager, 'reset_for_new_game'):
             self.boss_manager.reset_for_new_game()
         else:
-            # Fallback para compatibilidade
             self.boss_manager = BossManager(self.language_manager)
             self.boss_manager.boss_defeated = False
         
@@ -2110,15 +2144,131 @@ class BloodLostGame:
                 self.resource_manager.sprites["fireball"]
             )
 
-        if "menu_music" in self.resource_manager.sounds:
-            self.resource_manager.sounds["menu_music"].stop()
-        self.main_menu_playing = False
-
+        if "loading_music" in self.resource_manager.sounds:
+            self.resource_manager.sounds["loading_music"].stop()
+        
+        # Iniciar música do jogo
         if "bg_music" in self.resource_manager.sounds:
             self.resource_manager.sounds["bg_music"].play(loops=-1)
         self.music_playing = True
 
+    def draw_loading_screen(self):
+        """Desenha a tela de loading com texto do Drácula subindo"""
+        # Tela completamente preta
+        self.screen.fill((0, 0, 0))
+        
+        # Definir os textos por idioma
+        dracula_texts = {
+            "pt": [
+                "O Conde Drácula retornou...",
+                "As trevas se espalham pelo castelo...",
+                "Sua sede de sangue é insaciável...",
+                "Prepare-se para enfrentar o mal ancestral...",
+                "A batalha final se aproxima..."
+            ],
+            "en": [
+                "Count Dracula has returned...",
+                "Darkness spreads through the castle...",
+                "His thirst for blood is insatiable...",
+                "Prepare to face the ancient evil...",
+                "The final battle approaches..."
+            ]
+        }
+        
+        current_texts = dracula_texts[self.language_manager.current_language]
+        
+        # Calcular posições dos textos baseado no timer
+        # Cada texto aparece em intervalos diferentes e sobe com velocidades ligeiramente diferentes
+        text_intervals = [0, 300, 600, 900, 1200]  # Quando cada texto começa a aparecer
+        text_speeds = [2.5, 2.8, 2.3, 2.6, 2.4]   # Velocidade de subida de cada texto
+        
+        # Desenhar cada texto
+        for i, text in enumerate(current_texts):
+            # Verificar se é hora deste texto aparecer
+            if self.loading_timer > text_intervals[i]:
+                # Calcular quanto tempo este texto específico está na tela
+                text_age = self.loading_timer - text_intervals[i]
+                
+                # Posição Y inicial (começa na parte inferior da tela)
+                start_y = SCREEN_HEIGHT + 50
+                
+                # Calcular posição atual (subindo)
+                current_y = start_y - (text_age * text_speeds[i])
+                
+                # Só desenhar se o texto ainda estiver visível (não saiu completamente da tela)
+                if current_y > -100:  # -100 para dar uma margem antes de parar de renderizar
+                    # Efeito de fade baseado na posição
+                    # Texto fica mais opaco quando está no centro da tela
+                    center_distance = abs(current_y - SCREEN_HEIGHT // 2)
+                    max_distance = SCREEN_HEIGHT // 2 + 100
+                    alpha = max(50, 255 - int((center_distance / max_distance) * 205))
+                    
+                    # Escolher fonte baseada na importância do texto
+                    if i == 0 or i == len(current_texts) - 1:  # Primeiro e último texto maiores
+                        font = self.resource_manager.fonts["large"]
+                        color = (220, 50, 50)  # Vermelho sangue
+                    else:
+                        font = self.resource_manager.fonts["medium"]
+                        color = (200, 200, 200)  # Cinza claro
+                    
+                    # Renderizar o texto
+                    text_surf = font.render(text, False, color)
+                    text_surf.set_alpha(alpha)
+                    
+                    # Centralizar horizontalmente
+                    text_rect = text_surf.get_rect(center=(SCREEN_WIDTH // 2, int(current_y)))
+                    
+                    # Desenhar sombra para melhor legibilidade
+                    shadow_surf = font.render(text, False, (0, 0, 0))
+                    shadow_surf.set_alpha(alpha // 2)
+                    shadow_rect = shadow_surf.get_rect(center=(SCREEN_WIDTH // 2 + 2, int(current_y) + 2))
+                    
+                    self.screen.blit(shadow_surf, shadow_rect)
+                    self.screen.blit(text_surf, text_rect)
+        
+        # Efeito adicional: partículas ou névoa (opcional)
+        if self.loading_timer > 60:
+            # Desenhar algumas "partículas" flutuantes para ambiente sombrio
+            import random
+            for _ in range(5):
+                particle_x = random.randint(0, SCREEN_WIDTH)
+                particle_y = random.randint(0, SCREEN_HEIGHT)
+                particle_alpha = random.randint(20, 80)
+                particle_size = random.randint(1, 3)
+                
+                particle_surface = pygame.Surface((particle_size * 2, particle_size * 2))
+                particle_surface.set_alpha(particle_alpha)
+                particle_surface.fill((100, 100, 120))  # Azul acinzentado
+                
+                self.screen.blit(particle_surface, (particle_x, particle_y))
+        
+        # Indicador sutil de progresso no canto (opcional)
+        if self.loading_timer > 1500:  # Aparece próximo do final
+            progress = (self.loading_timer - 1500) / (self.loading_duration - 1500)
+            progress = min(1.0, progress)
+            
+            if progress < 1.0:
+                loading_indicator = "." * int((progress * 3) + 1)
+                indicator_text = f"Preparando{loading_indicator}"
+                
+                indicator_surf = self.resource_manager.fonts["small"].render(
+                    indicator_text, False, (100, 100, 100)
+                )
+                
+                # Posicionar no canto inferior direito
+                indicator_rect = indicator_surf.get_rect()
+                indicator_rect.bottomright = (SCREEN_WIDTH - 20, SCREEN_HEIGHT - 20)
+                
+                self.screen.blit(indicator_surf, indicator_rect)
+            
     def reset_game_state(self):
+        # Garantir que loading screen está desativado
+        self.loading_screen_active = False
+        self.loading_timer = 0
+        
+        if "loading_music" in self.resource_manager.sounds:
+            self.resource_manager.sounds["loading_music"].stop()
+        
         self.obstacle_list.clear()
         self.player_projectiles.clear()
         self.shoot_cooldown = 0
@@ -2143,11 +2293,10 @@ class BloodLostGame:
 
         self.phase_manager = PhaseManager(self.language_manager)
 
-        # CORREÇÃO: Reset completo do boss manager usando o novo método
+        # Reset completo do boss manager
         if hasattr(self.boss_manager, 'reset_for_new_game'):
             self.boss_manager.reset_for_new_game()
         else:
-            # Fallback para compatibilidade
             self.boss_manager = BossManager(self.language_manager)
             self.boss_manager.boss_defeated = False
         
@@ -2183,6 +2332,18 @@ class BloodLostGame:
             return self.resource_manager.sprites["background_phase_0"]
 
     def update_game(self):
+        # Se estiver na tela de loading
+        if self.loading_screen_active:
+            self.loading_timer += 1
+            
+            if self.loading_timer >= self.loading_duration:
+                # Loading concluído, inicializar o jogo
+                self.loading_screen_active = False
+                self.loading_timer = 0
+                self.initialize_game_after_loading()
+            
+            return  # Não fazer mais nada durante o loading
+        
         if self.victory_triggered or self.game_state == "victory":
             if not self.victory_triggered:
                 self.victory_timer = 0
@@ -2202,9 +2363,8 @@ class BloodLostGame:
             if self.player_invulnerable_timer > 0:
                 self.player_invulnerable_timer -= 1
 
-            # Check for Dracula boss trigger - COM DEBUG TEMPORÁRIO
+            # Check for Dracula boss trigger
             if self.boss_manager.should_trigger_boss(self.score):
-                
                 self.boss_manager.start_boss_battle()
                 if "bg_music" in self.resource_manager.sounds:
                     self.resource_manager.sounds["bg_music"].stop()
@@ -2399,7 +2559,7 @@ class BloodLostGame:
             self.screen.blit(self.current_player_surface, self.player_rect)
 
     def stop_all_music(self):
-        sounds_to_stop = ["bg_music", "boss_music", "menu_music"]
+        sounds_to_stop = ["bg_music", "boss_music", "menu_music", "loading_music"]
         for sound_name in sounds_to_stop:
             if sound_name in self.resource_manager.sounds:
                 self.resource_manager.sounds[sound_name].stop()
@@ -2430,7 +2590,9 @@ class BloodLostGame:
                 self.stop_all_music()
 
     def render(self):
-        if self.game_state == "menu":
+        if self.loading_screen_active:
+            self.draw_loading_screen()
+        elif self.game_state == "menu":
             self.draw_menu()
         elif self.game_state == "highscores":
             self.draw_highscores()
