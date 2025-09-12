@@ -1664,8 +1664,10 @@ class BloodLostGame:
         highscore_rect = highscore_surf.get_rect(center=(400, 160))
         self.screen.blit(highscore_surf, highscore_rect)
 
+        # ALTERAÇÃO: Adicionar "INSTRUÇÕES" na lista de opções do menu
         menu_options = [
             self.language_manager.get_text("start"),
+            self.language_manager.get_text("instructions"),  # NOVO
             self.language_manager.get_text("highscores"),
             self.language_manager.get_text("settings"),
         ]
@@ -1678,15 +1680,181 @@ class BloodLostGame:
                 shadow_surf = self.resource_manager.fonts["medium"].render(
                     option, False, BLACK
                 )
-                shadow_rect = shadow_surf.get_rect(center=(402, 232 + i * 50))
+                shadow_rect = shadow_surf.get_rect(center=(402, 212 + i * 40))  # Espaçamento reduzido
                 self.screen.blit(shadow_surf, shadow_rect)
 
             option_surf = self.resource_manager.fonts["medium"].render(
                 option, False, color
             )
-            option_rect = option_surf.get_rect(center=(400, 230 + i * 50))
+            option_rect = option_surf.get_rect(center=(400, 210 + i * 40))  # Espaçamento reduzido
             self.screen.blit(option_surf, option_rect)
 
+    def draw_instructions(self):
+        self.screen.blit(self.resource_manager.sprites["menu_bg"], (0, 0))
+
+        # Overlay escuro para melhor legibilidade
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.set_alpha(180)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+
+        # Título
+        title_surf = self.resource_manager.fonts["large"].render(
+            self.language_manager.get_text("game_instructions"), False, RED
+        )
+        title_rect = title_surf.get_rect(center=(400, 30))
+        self.screen.blit(title_surf, title_rect)
+
+        # Organizar instruções em colunas
+        left_column_x = 180
+        right_column_x = 620
+        start_y = 80
+        line_height = 25
+
+        # Coluna Esquerda - Controles Básicos
+        instructions_left = [
+            self.language_manager.get_text("basic_controls"),
+            "",
+            self.language_manager.get_text("movement"),
+            self.language_manager.get_text("movement_keys"),
+            self.language_manager.get_text("movement_keys_right"),
+            "",
+            self.language_manager.get_text("jump"),
+            self.language_manager.get_text("jump_keys"),
+            "",
+            self.language_manager.get_text("combat"),
+            "",
+            self.language_manager.get_text("shooting"),
+            self.language_manager.get_text("shooting_keys"),
+            "",
+            self.language_manager.get_text("whip_attack"),
+            self.language_manager.get_text("whip_keys"),
+        ]
+
+        # Coluna Direita - Gameplay e Dicas
+        instructions_right = [
+            self.language_manager.get_text("gameplay"),
+            "",
+            self.language_manager.get_text("objective"),
+            self.language_manager.get_text("enemies"),
+            "",
+            self.language_manager.get_text("scoring"),
+            self.language_manager.get_text("score_jump"),
+            self.language_manager.get_text("score_kill"),
+            self.language_manager.get_text("score_boss"),
+            "",
+            self.language_manager.get_text("boss_info"),
+            self.language_manager.get_text("boss_trigger"),
+            self.language_manager.get_text("boss_movement"),
+            self.language_manager.get_text("boss_strategy"),
+            self.language_manager.get_text("boss_avoid"),
+        ]
+
+        # Desenhar coluna esquerda
+        for i, instruction in enumerate(instructions_left):
+            if instruction == "":
+                continue
+            
+            y_pos = start_y + i * line_height
+            if y_pos > SCREEN_HEIGHT - 100:  # Evitar sair da tela
+                break
+                
+            # Cores diferentes para diferentes tipos de texto
+            if instruction == self.language_manager.get_text("basic_controls"):
+                color = YELLOW
+                font = self.resource_manager.fonts["medium"]
+            elif instruction == self.language_manager.get_text("combat"):
+                color = YELLOW
+                font = self.resource_manager.fonts["medium"]
+            elif ":" in instruction and not any(key in instruction for key in ["A/", "D/", "SPACE", "X/", "Z/"]):
+                color = (150, 150, 255)  # Azul claro para títulos de seção
+                font = self.resource_manager.fonts["small"]
+            elif any(key in instruction for key in ["A/", "D/", "SPACE", "X/", "Z/"]):
+                color = (100, 255, 100)  # Verde para teclas
+                font = self.resource_manager.fonts["small"]
+            else:
+                color = WHITE
+                font = self.resource_manager.fonts["small"]
+
+            text_surf = font.render(instruction, False, color)
+            text_rect = text_surf.get_rect()
+            text_rect.centerx = left_column_x
+            text_rect.y = y_pos
+            self.screen.blit(text_surf, text_rect)
+
+        # Desenhar coluna direita
+        for i, instruction in enumerate(instructions_right):
+            if instruction == "":
+                continue
+            
+            y_pos = start_y + i * line_height
+            if y_pos > SCREEN_HEIGHT - 100:  # Evitar sair da tela
+                break
+                
+            # Cores diferentes para diferentes tipos de texto
+            if instruction == self.language_manager.get_text("gameplay"):
+                color = YELLOW
+                font = self.resource_manager.fonts["medium"]
+            elif instruction == self.language_manager.get_text("boss_info"):
+                color = YELLOW
+                font = self.resource_manager.fonts["medium"]
+            elif ":" in instruction and not any(key in instruction for key in ["+", "50", "20", "1000"]):
+                color = (255, 150, 100)  # Laranja claro para títulos de seção
+                font = self.resource_manager.fonts["small"]
+            elif any(key in instruction for key in ["+50", "+20", "+1000"]):
+                color = GOLD  # Dourado para pontuação
+                font = self.resource_manager.fonts["small"]
+            else:
+                color = WHITE
+                font = self.resource_manager.fonts["small"]
+
+            text_surf = font.render(instruction, False, color)
+            text_rect = text_surf.get_rect()
+            text_rect.centerx = right_column_x
+            text_rect.y = y_pos
+            self.screen.blit(text_surf, text_rect)
+
+        # Instruções na parte inferior
+        bottom_instructions = [
+            self.language_manager.get_text("phases_info"),
+            self.language_manager.get_text("phase_progression"),
+            "",
+            self.language_manager.get_text("tips"),
+            self.language_manager.get_text("tip_combo"),
+            self.language_manager.get_text("tip_whip"),
+            self.language_manager.get_text("tip_invulnerable"),
+        ]
+
+        bottom_y = 420
+        for i, instruction in enumerate(bottom_instructions):
+            if instruction == "":
+                continue
+                
+            y_pos = bottom_y + i * 20
+            if y_pos > SCREEN_HEIGHT - 50:
+                break
+                
+            if instruction == self.language_manager.get_text("phases_info"):
+                color = YELLOW
+                font = self.resource_manager.fonts["medium"]
+            elif instruction == self.language_manager.get_text("tips"):
+                color = YELLOW
+                font = self.resource_manager.fonts["medium"]
+            else:
+                color = LIGHT_GRAY
+                font = self.resource_manager.fonts["small"]
+
+            text_surf = font.render(instruction, False, color)
+            text_rect = text_surf.get_rect(center=(400, y_pos))
+            self.screen.blit(text_surf, text_rect)
+
+        # Instruções para voltar
+        back_surf = self.resource_manager.fonts["small"].render(
+            self.language_manager.get_text("press_back"), False, DARK_GRAY
+        )
+        back_rect = back_surf.get_rect(center=(400, SCREEN_HEIGHT - 20))
+        self.screen.blit(back_surf, back_rect)
+    
     def draw_highscores(self):
         self.screen.blit(self.resource_manager.sprites["menu_bg"], (0, 0))
 
@@ -1976,9 +2144,11 @@ class BloodLostGame:
                         self.loading_timer = 0
                         self.initialize_game_after_loading()
                 continue
-
+                
             if self.game_state == "menu":
                 self.handle_menu_events(event)
+            elif self.game_state == "instructions":  # NOVO
+                self.handle_instructions_events(event)
             elif self.game_state == "highscores":
                 self.handle_highscore_events(event)
             elif self.game_state == "settings":
@@ -1995,21 +2165,26 @@ class BloodLostGame:
     def handle_victory_events(self, event):
         pass
 
+    def handle_instructions_events(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key in [pygame.K_ESCAPE, pygame.K_RETURN]:
+                self.game_state = "menu"
+            
     def handle_menu_events(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_UP, pygame.K_w]:
-                self.selected_option = (self.selected_option - 1) % 4
+                self.selected_option = (self.selected_option - 1) % 4  # ALTERADO: 4 opções agora
             elif event.key in [pygame.K_DOWN, pygame.K_s]:
-                self.selected_option = (self.selected_option + 1) % 4
+                self.selected_option = (self.selected_option + 1) % 4  # ALTERADO: 4 opções agora
             elif event.key == pygame.K_RETURN:
-                if self.selected_option == 0:
+                if self.selected_option == 0:  # START
                     self.start_game()
-                elif self.selected_option == 1:
+                elif self.selected_option == 1:  # INSTRUÇÕES - NOVO
+                    self.game_state = "instructions"
+                elif self.selected_option == 2:  # HIGHSCORES
                     self.game_state = "highscores"
-                elif self.selected_option == 2:
+                elif self.selected_option == 3:  # SETTINGS
                     self.game_state = "settings"
-                elif self.selected_option == 3:
-                    return False
 
     def handle_highscore_events(self, event):
         if event.type == pygame.KEYDOWN:
@@ -2582,7 +2757,7 @@ class BloodLostGame:
         self.main_menu_playing = False
 
     def update_audio(self):
-        if self.game_state in ["menu", "highscores", "settings"]:
+        if self.game_state in ["menu","instructions", "highscores", "settings"]:
             if self.music_playing or self.boss_music_playing:
                 self.stop_all_music()
 
@@ -2607,6 +2782,8 @@ class BloodLostGame:
             self.draw_loading_screen()
         elif self.game_state == "menu":
             self.draw_menu()
+        elif self.game_state == "instructions":
+            self.draw_instructions()
         elif self.game_state == "highscores":
             self.draw_highscores()
         elif self.game_state == "settings":
