@@ -18,7 +18,7 @@ SCALE_FACTOR = 1.5
 HERO_SCALE = 2
 ENEMY_SCALE = 2
 
-PHASE_THRESHOLDS = [0, 10, 20, 30, 40]
+PHASE_THRESHOLDS = [0, 500, 1500, 3000, 5000]
 PHASE_NAMES = {
     "en": [
         "Castle Entrance",
@@ -36,7 +36,11 @@ PHASE_NAMES = {
     ],
 }
 
-BOSS_TRIGGER = 10
+BOSS_TRIGGER = 50
+
+POINTS_JUMP_ENEMY = 50
+POINTS_KILL_ENEMY = 20
+POINTS_BOSS_DEFEAT = 1000
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -190,6 +194,7 @@ TEXTS = {
 
 PLAYER_START_X = 300
 PLAYER_START_Y = 245
+
 
 class PlayerAnimationState:
     def __init__(self):
@@ -407,12 +412,15 @@ class PlayerAttackSystem:
                         if enemy in obstacles:
                             obstacles.remove(enemy)
 
-                    self.enemies_defeated += len(hit_enemies)
-                    self.combo_counter += len(hit_enemies)
+                    killed_count = len(hit_enemies)
+                    self.enemies_defeated += killed_count
+                    self.combo_counter += killed_count
                     self.combo_timer = 120
 
                     if sounds and "whip_hit" in sounds:
                         sounds["whip_hit"].play()
+
+                    return killed_count
 
                 if boss_manager and boss_manager.is_boss_active():
                     if self.check_boss_collision(boss_manager):
@@ -951,6 +959,13 @@ class BossManager:
 
             screen.blit(shadow_text, shadow_rect)
             screen.blit(victory_text, victory_rect)
+            
+    def reset_for_new_game(self):
+        """Reset completo para nova partida"""
+        self.current_boss = None
+        self.boss_defeated = False
+        self.boss_victory_timer = 0
+        self.boss_reward_given = False
 
 
 class LanguageManager:
@@ -1160,6 +1175,8 @@ class BloodLostGame:
         self.new_record_timer = 0
 
         self.player_gravity = 0
+        self.enemies_jumped = 0
+        self.enemies_killed = 0
 
         self.last_move_direction = "right"
 
@@ -1416,12 +1433,37 @@ class BloodLostGame:
 
     def check_collisions(self):
         if self.boss_manager.is_boss_active():
-            return True
+            return True, 0
 
-        for obstacle in self.obstacle_list:
+        jumped_enemies = 0
+        enemies_to_remove = []  # Lista para armazenar inimigos que foram pulados
+        
+        for i, obstacle in enumerate(self.obstacle_list):
             if self.player_rect.colliderect(obstacle["rect"]):
-                return False
-        return True
+                # Condições para considerar um "pulo" sobre o inimigo:
+                # 1. Jogador deve estar caindo (gravity > 0)
+                # 2. Jogador deve estar vindo de cima (player bottom < enemy center)
+                # 3. Velocidade descendente suficiente para ser considerado pulo
+                if (self.player_gravity > 0 and 
+                    self.player_rect.bottom <= obstacle["rect"].centery + 10 and
+                    self.player_rect.centery < obstacle["rect"].centery):
+                    
+                    jumped_enemies += 1
+                    enemies_to_remove.append(i)  # Marcar para remoção
+                    
+                    # Opcional: pequeno impulso para cima ao pular no inimigo
+                    self.player_gravity = min(self.player_gravity, -2)
+                    
+                else:
+                    # Colisão lateral/frontal - game over
+                    return False, jumped_enemies
+        
+        # Remover inimigos pulados (em ordem reversa para não afetar índices)
+        for i in reversed(enemies_to_remove):
+            if i < len(self.obstacle_list):
+                self.obstacle_list.pop(i)
+        
+        return True, jumped_enemies
 
     def update_player_animation(self):
         is_attacking = self.attack_system.is_attacking()
@@ -1477,33 +1519,29 @@ class BloodLostGame:
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
 
+        killed_enemies = 0
         active_projectiles = []
         for projectile in self.player_projectiles:
             projectile.update()
 
             if projectile.active:
-                # Verificar colisão com inimigos normais (obstacles)
                 hit_enemy = False
-                for obstacle in self.obstacle_list[:]:  # Use slice to avoid modification during iteration
+                for obstacle in self.obstacle_list[:]:
                     if projectile.rect.colliderect(obstacle["rect"]):
-                        # Projétil atingiu um inimigo
                         projectile.active = False
-                        self.obstacle_list.remove(obstacle)  # Remove o inimigo
+                        self.obstacle_list.remove(obstacle)
                         hit_enemy = True
-                        
-                        # Tocar som de acerto se disponível
+                        killed_enemies += 1
+
                         if "whip_hit" in self.resource_manager.sounds:
                             self.resource_manager.sounds["whip_hit"].play()
-                        
-                        # Adicionar pontos ou efeitos se desejar
-                        # self.score += 1  # Exemplo: adicionar pontos por matar inimigo
                         break
-                
-                # Só manter o projétil ativo se não atingiu nenhum inimigo
+
                 if not hit_enemy:
                     active_projectiles.append(projectile)
 
         self.player_projectiles = active_projectiles
+        return killed_enemies 
 
     def draw_projectiles(self):
         for projectile in self.player_projectiles:
@@ -1524,33 +1562,14 @@ class BloodLostGame:
                 self.resource_manager.sounds["whip_attack"].play()
 
     def display_score(self):
-        current_time = int(pygame.time.get_ticks() / 1000) - self.start_time
-
         score_surf = self.resource_manager.fonts["large"].render(
-            self.language_manager.get_text("score").format(current_time), False, WHITE
+            self.language_manager.get_text("score").format(self.score), False, WHITE
         )
         self.screen.blit(score_surf, (20, 20))
 
-        highscore_color = GOLD
-        if self.highscore_manager.is_new_record(current_time):
-            self.new_record_timer += 1
-            if (self.new_record_timer // 20) % 2:
-                highscore_color = (255, 50, 50)
-            else:
-                highscore_color = YELLOW
-
-        highscore_surf = self.resource_manager.fonts["small"].render(
-            self.language_manager.get_text("best").format(
-                self.highscore_manager.highscore
-            ),
-            False,
-            highscore_color,
-        )
-        self.screen.blit(highscore_surf, (20, 70))
-
         # Boss warning
         if (
-            current_time >= BOSS_TRIGGER - 5
+            self.score >= BOSS_TRIGGER - 200
             and not self.boss_manager.boss_defeated
             and not self.boss_manager.is_boss_active()
         ):
@@ -1559,8 +1578,14 @@ class BloodLostGame:
                 if (pygame.time.get_ticks() // 500) % 2
                 else (255, 200, 200)
             )
+            # warning_text = self.language_manager.get_text("boss_approaching")
+            # warning_surf = self.resource_manager.fonts["medium"].render(
+            #     warning_text, False, warning_color
+            # )
+            # warning_rect = warning_surf.get_rect(center=(400, 150))
+            # self.screen.blit(warning_surf, warning_rect)
 
-        if self.highscore_manager.is_new_record(current_time) and current_time > 0:
+        if self.highscore_manager.is_new_record(self.score) and self.score > 0:
             if (self.new_record_timer // 30) % 2:
                 record_surf = self.resource_manager.fonts["medium"].render(
                     self.language_manager.get_text("new_record"), False, (255, 50, 50)
@@ -1578,7 +1603,7 @@ class BloodLostGame:
                 invul_rect = invul_surf.get_rect(center=(400, 200))
                 self.screen.blit(invul_surf, invul_rect)
 
-        return current_time
+        return self.score
 
     def display_score_boss(self):
         """Display score specifically for boss battles"""
@@ -1801,7 +1826,7 @@ class BloodLostGame:
                     if self.volume < 1.0:
                         right_arrow = self.resource_manager.fonts["medium"].render(
                             " > ", False, YELLOW
-                        ) 
+                        )
                         right_arrow_rect = right_arrow.get_rect(
                             center=(520, 160 + i * 40)
                         )
@@ -1976,9 +2001,13 @@ class BloodLostGame:
     def handle_settings_events(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_UP, pygame.K_w]:
-                self.selected_setting = (self.selected_setting - 1) % 3  # Mudança aqui: 3 opções apenas
+                self.selected_setting = (
+                    self.selected_setting - 1
+                ) % 3  # Mudança aqui: 3 opções apenas
             elif event.key in [pygame.K_DOWN, pygame.K_s]:
-                self.selected_setting = (self.selected_setting + 1) % 3  # Mudança aqui: 3 opções apenas
+                self.selected_setting = (
+                    self.selected_setting + 1
+                ) % 3  # Mudança aqui: 3 opções apenas
             elif event.key == pygame.K_ESCAPE:
                 self.game_state = "menu"
             elif event.key == pygame.K_RETURN:
@@ -2044,7 +2073,13 @@ class BloodLostGame:
         self.obstacle_list.clear()
         self.player_projectiles.clear()
         self.shoot_cooldown = 0
-
+        self.enemies_jumped = 0
+        self.enemies_killed = 0
+        
+        # RESET DO SCORE - CORREÇÃO PRINCIPAL
+        self.score = 0
+        self.score_boss = 0
+        
         self.attack_system = PlayerAttackSystem(self.language_manager)
         self.attack_system.load_whip_sprites(self.resource_manager)
 
@@ -2063,8 +2098,14 @@ class BloodLostGame:
 
         self.phase_manager = PhaseManager(self.language_manager)
 
-        # CORREÇÃO: Reset completo do boss manager no início do jogo
-        self.boss_manager = BossManager(self.language_manager)
+        # CORREÇÃO: Reset completo do boss manager usando o novo método
+        if hasattr(self.boss_manager, 'reset_for_new_game'):
+            self.boss_manager.reset_for_new_game()
+        else:
+            # Fallback para compatibilidade
+            self.boss_manager = BossManager(self.language_manager)
+            self.boss_manager.boss_defeated = False
+        
         if "fireball" in self.resource_manager.sprites:
             self.boss_manager.set_fireball_sprite(
                 self.resource_manager.sprites["fireball"]
@@ -2082,7 +2123,14 @@ class BloodLostGame:
         self.obstacle_list.clear()
         self.player_projectiles.clear()
         self.shoot_cooldown = 0
+        self.enemies_jumped = 0
+        self.enemies_killed = 0
         self.victory_triggered = False
+        
+        # RESET DOS SCORES
+        self.score = 0
+        self.score_boss = 0
+        
         self.player_rect.x = PLAYER_START_X
         self.player_rect.y = PLAYER_START_Y
         self.player_rect.bottom = GROUND_Y
@@ -2096,8 +2144,14 @@ class BloodLostGame:
 
         self.phase_manager = PhaseManager(self.language_manager)
 
-        # CORREÇÃO: Reset completo do boss manager
-        self.boss_manager = BossManager(self.language_manager)
+        # CORREÇÃO: Reset completo do boss manager usando o novo método
+        if hasattr(self.boss_manager, 'reset_for_new_game'):
+            self.boss_manager.reset_for_new_game()
+        else:
+            # Fallback para compatibilidade
+            self.boss_manager = BossManager(self.language_manager)
+            self.boss_manager.boss_defeated = False
+        
         if "fireball" in self.resource_manager.sprites:
             self.boss_manager.set_fireball_sprite(
                 self.resource_manager.sprites["fireball"]
@@ -2149,8 +2203,11 @@ class BloodLostGame:
             if self.player_invulnerable_timer > 0:
                 self.player_invulnerable_timer -= 1
 
-            # Check for Dracula boss trigger
-            if self.boss_manager.should_trigger_boss(self.score_boss):
+            # Check for Dracula boss trigger - COM DEBUG TEMPORÁRIO
+            if self.boss_manager.should_trigger_boss(self.score):
+                print(f"Boss trigger ativado! Score: {self.score}, Boss defeated: {self.boss_manager.boss_defeated}")
+                print(f"Current boss: {self.boss_manager.current_boss}")
+                
                 self.boss_manager.start_boss_battle()
                 if "bg_music" in self.resource_manager.sounds:
                     self.resource_manager.sounds["bg_music"].stop()
@@ -2186,7 +2243,7 @@ class BloodLostGame:
                 return
 
             if boss_status == "boss_defeated":
-                self.score += 30
+                self.score += POINTS_BOSS_DEFEAT
                 self.game_state = "victory"
                 self.stop_all_music()
 
@@ -2209,11 +2266,21 @@ class BloodLostGame:
             elif self.player_rect.x > SCREEN_WIDTH - self.player_rect.width:
                 self.player_rect.x = SCREEN_WIDTH - self.player_rect.width
 
-            self.update_projectiles()
+            # Atualizar projecteis e contar inimigos mortos por faca
+            killed_by_projectiles = self.update_projectiles()
+            if killed_by_projectiles > 0:
+                self.score += POINTS_KILL_ENEMY * killed_by_projectiles  
+                self.enemies_killed += killed_by_projectiles
+                print(f"Score atual após faca: {self.score}")  # DEBUG
 
-            self.attack_system.update(
+            # Atualizar sistema de chicote e contar inimigos mortos por chicote
+            killed_by_whip = self.attack_system.update(
                 self.obstacle_list, self.boss_manager, self.resource_manager.sounds
             )
+            if killed_by_whip and killed_by_whip > 0:
+                self.score += POINTS_KILL_ENEMY * killed_by_whip
+                self.enemies_killed += killed_by_whip
+                print(f"Score atual após chicote: {self.score}")  # DEBUG
 
             # Renderização - BACKGROUND FIXO DURANTE BOSS
             if (
@@ -2263,7 +2330,14 @@ class BloodLostGame:
 
                 self.update_obstacles()
 
-                if self.player_invulnerable_timer <= 0 and not self.check_collisions():
+                # Sistema de colisão com pontuação por pulo CORRIGIDO
+                collision_result, jumped_enemies = self.check_collisions()
+                if jumped_enemies > 0:
+                    self.score += POINTS_JUMP_ENEMY * jumped_enemies
+                    self.enemies_jumped += jumped_enemies
+                    print(f"Pulou sobre {jumped_enemies} inimigos! Score atual: {self.score}")  # DEBUG
+
+                if self.player_invulnerable_timer <= 0 and not collision_result:
                     self.player_invulnerable_timer = 60
                     self.player_damaged = True
 
@@ -2279,7 +2353,9 @@ class BloodLostGame:
 
             # Resto da lógica do jogo
             self.draw_projectiles()
-            self.score = self.display_score()
+            
+            # Sistema de pontuação atualizado - apenas mostra o score atual
+            self.display_score()  # Não mais atualiza o score por tempo
             self.score_boss = self.display_score_boss()
 
             # Só atualizar fase se não estiver no boss
@@ -2290,6 +2366,7 @@ class BloodLostGame:
                 phase_changed = self.phase_manager.update_phase(self.score)
                 self.phase_manager.update_notification_timer()
 
+            # Física do jogador
             if self.player_gravity < 0:
                 self.player_gravity += GRAVITY_ASCEND
             else:
