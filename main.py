@@ -14,6 +14,12 @@ GRAVITY_ASCEND = 0.4
 GRAVITY_DESCEND = 0.8
 GROUND_Y = 310
 
+MAX_LIVES = 3
+HEART_SIZE = 32
+HEART_SPACING = 40
+HEARTS_START_X = SCREEN_WIDTH - 150  
+HEARTS_Y = 30  
+
 SCALE_FACTOR = 1.5
 HERO_SCALE = 2
 ENEMY_SCALE = 2
@@ -241,7 +247,105 @@ TEXTS = {
 PLAYER_START_X = 300
 PLAYER_START_Y = 245
 
-
+class LifeManager:
+    def __init__(self, resource_manager):
+        self.current_lives = MAX_LIVES
+        self.max_lives = MAX_LIVES
+        self.resource_manager = resource_manager
+        self.heart_sprite = None
+        self.empty_heart_sprite = None
+        self.load_heart_sprites()
+        
+    def load_heart_sprites(self):
+        # Tentar carregar sprite do coração
+        try:
+            # Você pode substituir este caminho pelo sprite real do coração
+            self.heart_sprite = self.resource_manager.load_sprite(
+                "heart", "sprites\\Item\\life.png", 2.0
+            )
+        except:
+            # Criar coração pixel art se não houver sprite
+            self.heart_sprite = self.create_heart_sprite(True)
+            
+        try:
+            # Coração vazio/cinza
+            self.empty_heart_sprite = self.resource_manager.load_sprite(
+                "empty_heart", "sprites\\Item\\empity.png", 2.0
+            )
+        except:
+            # Criar coração vazio se não houver sprite
+            self.empty_heart_sprite = self.create_heart_sprite(False)
+    
+    def create_heart_sprite(self, filled=True):
+        """Cria um sprite de coração pixel art"""
+        sprite = pygame.Surface((16, 16), pygame.SRCALPHA)
+        
+        if filled:
+            # Coração vermelho preenchido
+            heart_color = (220, 20, 60)  # Vermelho escuro
+            outline_color = (139, 0, 0)  # Vermelho muito escuro para contorno
+        else:
+            # Coração vazio/cinza
+            heart_color = (100, 100, 100)  # Cinza
+            outline_color = (60, 60, 60)  # Cinza escuro para contorno
+        
+        # Pixel art do coração (16x16)
+        heart_pixels = [
+            "  ####  ####  ",
+            " ########### ",
+            "##############",
+            "##############",
+            " ############ ",
+            "  ##########  ",
+            "   ########   ",
+            "    ######    ",
+            "     ####     ",
+            "      ##      ",
+            "              ",
+        ]
+        
+        for y, row in enumerate(heart_pixels):
+            for x, pixel in enumerate(row):
+                if pixel == '#':
+                    sprite.set_at((x, y), heart_color)
+                elif pixel == '.':
+                    sprite.set_at((x, y), outline_color)
+        
+        # Escalar para ficar maior
+        return pygame.transform.scale(sprite, (HEART_SIZE, HEART_SIZE))
+    
+    def take_damage(self):
+        """Remove uma vida e retorna True se ainda há vidas, False se game over"""
+        if self.current_lives > 0:
+            self.current_lives -= 1
+        return self.current_lives > 0
+    
+    def is_alive(self):
+        """Retorna se o jogador ainda tem vidas"""
+        return self.current_lives > 0
+    
+    def reset_lives(self):
+        """Restaura todas as vidas"""
+        self.current_lives = self.max_lives
+    
+    def add_life(self):
+        """Adiciona uma vida (máximo 3)"""
+        if self.current_lives < self.max_lives:
+            self.current_lives += 1
+    
+    def draw(self, screen):
+        """Desenha os corações na tela"""
+        for i in range(self.max_lives):
+            heart_x = HEARTS_START_X + (i * HEART_SPACING)
+            heart_y = HEARTS_Y
+            
+            if i < self.current_lives:
+                # Coração preenchido
+                screen.blit(self.heart_sprite, (heart_x, heart_y))
+            else:
+                # Coração vazio
+                screen.blit(self.empty_heart_sprite, (heart_x, heart_y))
+                
 class PlayerAnimationState:
     def __init__(self):
         self.current_state = "walking"
@@ -1160,6 +1264,7 @@ class BloodLostGame:
         self.highscore_manager = HighscoreManager()
         self.phase_manager = PhaseManager(self.language_manager)
         self.boss_manager = BossManager(self.language_manager)
+        self.life_manager = LifeManager(self.resource_manager)
 
         self.player_animation_state = PlayerAnimationState()
         self.player_animation_state.victory_auto_return = 300
@@ -1436,35 +1541,39 @@ class BloodLostGame:
         self.obstacle_list = updated_obstacles
 
     def check_collisions(self):
+        """Método modificado para usar o sistema de vidas"""
         if self.boss_manager.is_boss_active():
             return True, 0
 
         jumped_enemies = 0
-        enemies_to_remove = []  # Lista para armazenar inimigos que foram pulados
+        enemies_to_remove = []
 
         for i, obstacle in enumerate(self.obstacle_list):
             if self.player_rect.colliderect(obstacle["rect"]):
-                # Condições para considerar um "pulo" sobre o inimigo:
-                # 1. Jogador deve estar caindo (gravity > 0)
-                # 2. Jogador deve estar vindo de cima (player bottom < enemy center)
-                # 3. Velocidade descendente suficiente para ser considerado pulo
                 if (
                     self.player_gravity > 0
                     and self.player_rect.bottom <= obstacle["rect"].centery + 10
                     and self.player_rect.centery < obstacle["rect"].centery
                 ):
-
                     jumped_enemies += 1
-                    enemies_to_remove.append(i)  # Marcar para remoção
-
-                    # Opcional: pequeno impulso para cima ao pular no inimigo
+                    enemies_to_remove.append(i)
                     self.player_gravity = min(self.player_gravity, -2)
-
                 else:
-                    # Colisão lateral/frontal - game over
-                    return False, jumped_enemies
+                    # Colisão lateral - verificar se pode tomar dano
+                    if self.player_invulnerable_timer <= 0:
+                        # Remove o inimigo que causou dano
+                        enemies_to_remove.append(i)
+                        
+                        # Tomar dano
+                        still_alive = self.life_manager.take_damage()
+                        self.player_invulnerable_timer = 120  # 2 segundos de invulnerabilidade
+                        
+                        if not still_alive:
+                            # Game Over
+                            return False, jumped_enemies
+                        # Se ainda tem vidas, continua o jogo mas com invulnerabilidade
 
-        # Remover inimigos pulados (em ordem reversa para não afetar índices)
+        # Remover inimigos pulados ou que causaram dano
         for i in reversed(enemies_to_remove):
             if i < len(self.obstacle_list):
                 self.obstacle_list.pop(i)
@@ -2127,6 +2236,7 @@ class BloodLostGame:
         )
         menu_rect = menu_surf.get_rect(center=(400, 450))
         self.screen.blit(menu_surf, menu_rect)
+        
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -2286,6 +2396,7 @@ class BloodLostGame:
         self.shoot_cooldown = 0
         self.enemies_jumped = 0
         self.enemies_killed = 0
+        self.life_manager.reset_lives()
 
         # RESET DO SCORE
         self.score = 0
@@ -2453,7 +2564,8 @@ class BloodLostGame:
         # Garantir que loading screen está desativado
         self.loading_screen_active = False
         self.loading_timer = 0
-
+        self.life_manager.reset_lives()
+         
         if "loading_music" in self.resource_manager.sounds:
             self.resource_manager.sounds["loading_music"].stop()
 
@@ -2625,41 +2737,8 @@ class BloodLostGame:
                 self.score += POINTS_KILL_ENEMY * killed_by_whip
                 self.enemies_killed += killed_by_whip
 
-            # Renderização - BACKGROUND FIXO DURANTE BOSS
-            if (
-                self.boss_manager.is_boss_active()
-                or self.boss_manager.boss_victory_timer > 0
-            ):
-                # Durante boss battle, usar background fixo do Dracula's Lair
-                current_bg = self.resource_manager.sprites.get(
-                    "background_phase_4",
-                    self.resource_manager.sprites["background_phase_0"],
-                )
-                # Limpar a tela completamente antes de desenhar o background fixo
-                self.screen.fill((0, 0, 0))  # Tela preta primeiro
-                self.screen.blit(current_bg, (0, 0))  # Background estático sem scroll
-                self.obstacle_list.clear()
-
-                # Reset da posição do background para evitar problemas quando sair do boss
-                self.bg_x_pos = 0
-
-                if (
-                    self.player_invulnerable_timer <= 0
-                    and self.boss_manager.check_player_damage(self.player_rect)
-                ):
-                    self.player_invulnerable_timer = 60
-                    self.player_damaged = True
-
-                    if self.highscore_manager.update_if_record(self.score):
-                        pass
-                    self.game_state = "game_over"
-                    self.score_boss = 0
-                    self.stop_all_music()
-                    if "game_over" in self.resource_manager.sounds:
-                        self.resource_manager.sounds["game_over"].play()
-                    return
-
-            else:
+            # Renderização - Sistema modificado com sistema de vidas
+            if not self.boss_manager.is_boss_active() and self.boss_manager.boss_victory_timer <= 0:
                 # Lógica normal do jogo com scroll do background
                 self.bg_x_pos -= 2
                 current_bg = self.get_current_background()
@@ -2673,25 +2752,56 @@ class BloodLostGame:
 
                 self.update_obstacles()
 
-                # Sistema de colisão com pontuação por pulo CORRIGIDO
+                # Sistema de colisão modificado
                 collision_result, jumped_enemies = self.check_collisions()
                 if jumped_enemies > 0:
                     self.score += POINTS_JUMP_ENEMY * jumped_enemies
                     self.enemies_jumped += jumped_enemies
 
-                if self.player_invulnerable_timer <= 0 and not collision_result:
-                    self.player_invulnerable_timer = 60
-                    self.player_damaged = True
-
+                # Se collision_result é False, significa game over (sem vidas)
+                if not collision_result:
                     if self.highscore_manager.update_if_record(self.score):
                         pass
-
                     self.game_state = "game_over"
                     self.score_boss = 0
                     self.stop_all_music()
                     if "game_over" in self.resource_manager.sounds:
                         self.resource_manager.sounds["game_over"].play()
                     return
+
+            else:
+                # Durante boss battle, usar background fixo do Dracula's Lair
+                current_bg = self.resource_manager.sprites.get(
+                    "background_phase_4",
+                    self.resource_manager.sprites["background_phase_0"],
+                )
+                # Limpar a tela completamente antes de desenhar o background fixo
+                self.screen.fill((0, 0, 0))  # Tela preta primeiro
+                self.screen.blit(current_bg, (0, 0))  # Background estático sem scroll
+                self.obstacle_list.clear()
+
+                # Reset da posição do background para evitar problemas quando sair do boss
+                self.bg_x_pos = 0
+
+                # Verificar dano do boss (modificado)
+                if (
+                    self.player_invulnerable_timer <= 0
+                    and self.boss_manager.check_player_damage(self.player_rect)
+                ):
+                    self.player_invulnerable_timer = 120  # 2 segundos de invulnerabilidade
+
+                    # Tomar dano do boss
+                    still_alive = self.life_manager.take_damage()
+                    if not still_alive:
+                        # Game Over
+                        if self.highscore_manager.update_if_record(self.score):
+                            pass
+                        self.game_state = "game_over"
+                        self.score_boss = 0
+                        self.stop_all_music()
+                        if "game_over" in self.resource_manager.sounds:
+                            self.resource_manager.sounds["game_over"].play()
+                        return
 
             # Resto da lógica do jogo
             self.draw_projectiles()
@@ -2723,6 +2833,9 @@ class BloodLostGame:
             self.render_player_and_effects()
             self.boss_manager.draw(self.screen, self.dracula_sprites)
             self.attack_system.draw_ui(self.screen, self.resource_manager.fonts)
+
+            # Desenhar os corações (sistema de vidas)
+            self.life_manager.draw(self.screen)
 
             # Só mostrar notificação de fase se não estiver no boss
             if (
