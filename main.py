@@ -24,6 +24,28 @@ SCALE_FACTOR = 1.5
 HERO_SCALE = 2
 ENEMY_SCALE = 2
 
+# NOVO: Tipos de daltonismo disponíveis
+COLORBLIND_TYPES = {
+    "normal": {
+        "en": "Normal Vision",
+        "pt": "Visão Normal"
+    },
+    "protanomalia": {
+        "en": "Protanomalia",
+        "pt": "Protanomalia"
+    },
+    "deuteranomalia": {
+        "en": "Deuteranomalia",
+        "pt": "Deuteranomalia"
+    },
+    "tritanomalia": {
+        "en": "Tritanomalia",
+        "pt": "Tritanomalia"
+    }
+}
+
+COLORBLIND_ORDER = ["normal", "protanomalia", "deuteranomalia", "tritanomalia"]
+
 PHASE_THRESHOLDS = [0, 500, 1500, 3000, 5000]
 PHASE_NAMES = {
     "en": [
@@ -60,6 +82,7 @@ DARK_GRAY = (100, 100, 100)
 TEXTS = {
     "en": {
         "title": "BloodLost",
+        "colorblind_mode": "Color Mode: {}",
         "best_score": "Best Score: {}",
         "start": "START",
         "instructions": "INSTRUCTIONS",  # NOVO
@@ -152,6 +175,7 @@ TEXTS = {
     },
     "pt": {
         "title": "BloodLost",
+        "colorblind_mode": "Modo de Cor: {}",
         "best_score": "Melhor Pontuacao: {}",
         "start": "INICIAR",
         "instructions": "INSTRUCOES",  # NOVO
@@ -1075,6 +1099,7 @@ class BossManager:
 class LanguageManager:
     def __init__(self):
         self.current_language = "pt"
+        self.colorblind_mode = "normal"  # NOVO
         self.load_settings()
 
     def load_settings(self):
@@ -1083,12 +1108,16 @@ class LanguageManager:
                 with open("language_settings.json", "r") as f:
                     data = json.load(f)
                     self.current_language = data.get("language", "pt")
+                    self.colorblind_mode = data.get("colorblind_mode", "normal")  # NOVO
         except:
             pass
 
     def save_settings(self):
         try:
-            data = {"language": self.current_language}
+            data = {
+                "language": self.current_language,
+                "colorblind_mode": self.colorblind_mode  # NOVO
+            }
             with open("language_settings.json", "w") as f:
                 json.dump(data, f)
         except:
@@ -1098,6 +1127,16 @@ class LanguageManager:
         if language in TEXTS:
             self.current_language = language
             self.save_settings()
+    
+    # NOVO: Método para mudar modo de daltonismo
+    def set_colorblind_mode(self, mode):
+        if mode in COLORBLIND_TYPES:
+            self.colorblind_mode = mode
+            self.save_settings()
+    
+    # NOVO: Método para obter nome do modo atual
+    def get_colorblind_mode_name(self):
+        return COLORBLIND_TYPES[self.colorblind_mode][self.current_language]
 
     def get_text(self, key):
         return TEXTS.get(self.current_language, TEXTS["pt"]).get(key, key)
@@ -1106,7 +1145,6 @@ class LanguageManager:
         if 0 <= phase_index < len(PHASE_NAMES[self.current_language]):
             return PHASE_NAMES[self.current_language][phase_index]
         return "Unknown Phase"
-
 
 class HighscoreManager:
     def __init__(self, filename="highscore.json"):
@@ -1315,21 +1353,67 @@ class BloodLostGame:
     def load_resources(self):
         rm = self.resource_manager
 
-        # Load backgrounds
-        background_paths = [
-            "sprites\\Background\\NES - Castlevania 2 Simons Quest.png",
-            "sprites\\Background\\teste8.png",
-            "sprites\\Background\\teste3.png",
-            "sprites\\Background\\teste5.png",
-            "sprites\\Background\\teste2.png",
-        ]
+        # NOVO: Mapeamento de backgrounds por tipo de daltonismo
+        self.background_mappings = {
+            "normal": [
+                "sprites\\Background\\Cenario 1.png",
+                "sprites\\Background\\Cenario 2.png",
+                "sprites\\Background\\Cenario 3.png",
+                "sprites\\Background\\Cenario 4.png",
+                "sprites\\Background\\Cenario 5.png",
+            ],
+            "protanomalia": [
+                "sprites\\Background\\protanomalia.png",
+                "sprites\\Background\\protanomalia2.png",
+                "sprites\\Background\\protanomalia3.png",
+                "sprites\\Background\\protanomalia4.png",
+                "sprites\\Background\\protanomalia5.png",
+            ],
+            "deuteranomalia": [
+                "sprites\\Background\\deuteranomalia.png",
+                "sprites\\Background\\deuteranomalia2.png",
+                "sprites\\Background\\deuteranomalia3.png",
+                "sprites\\Background\\deuteranomalia4.png",
+                "sprites\\Background\\deuteranomalia5.png",
+            ],
+            "tritanomalia": [
+                "sprites\\Background\\tritanomalia.png",
+                "sprites\\Background\\tritanomalia2.png",
+                "sprites\\Background\\tritanomalia3.png",
+                "sprites\\Background\\tritanomalia4.png",
+                "sprites\\Background\\tritanomalia5.png",
+            ]
+        }
 
-        for i, path in enumerate(background_paths):
-            background_name = f"background_phase_{i}"
-            loaded_sprite = rm.load_sprite(background_name, path, SCALE_FACTOR)
-            if loaded_sprite is None and i > 0:
-                rm.sprites[background_name] = rm.sprites["background_phase_0"]
+        # Carregar todos os backgrounds de todos os tipos
+        for colorblind_type, paths in self.background_mappings.items():
+            for i, path in enumerate(paths):
+                background_name = f"background_{colorblind_type}_phase_{i}"
+                try:
+                    # Tentar carregar o sprite
+                    sprite = pygame.image.load(path).convert_alpha()
+                    sprite = pygame.transform.scale(
+                        sprite, 
+                        (int(sprite.get_width() * SCALE_FACTOR), 
+                        int(sprite.get_height() * SCALE_FACTOR))
+                    )
+                    rm.sprites[background_name] = sprite
+                    print(f"✓ Carregado: {background_name}")
+                except Exception as e:
+                    print(f"✗ Erro ao carregar {path}: {e}")
+                    # Se falhar, usar o background normal correspondente como fallback
+                    fallback_normal = f"background_normal_phase_{i}"
+                    if fallback_normal in rm.sprites:
+                        rm.sprites[background_name] = rm.sprites[fallback_normal]
+                        print(f"  → Usando fallback: {fallback_normal}")
+                    elif i > 0:
+                        # Usar a fase 0 do mesmo tipo
+                        fallback_phase0 = f"background_{colorblind_type}_phase_0"
+                        if fallback_phase0 in rm.sprites:
+                            rm.sprites[background_name] = rm.sprites[fallback_phase0]
+                            print(f"  → Usando fallback: {fallback_phase0}")
 
+        # Carregar menu e game over backgrounds
         rm.load_sprite("menu_bg", "sprites\\Background\\loading.webp", SCALE_FACTOR)
 
         try:
@@ -1345,7 +1429,7 @@ class BloodLostGame:
             fallback_surface.fill((50, 20, 50))
             rm.sprites["gameover_bg"] = fallback_surface
 
-        # Load player sprites
+        # Resto do código continua exatamente igual (player sprites, enemy sprites, etc.)
         rm.load_sprite("player_idle", "sprites\\Player\\walk1.png", HERO_SCALE)
         rm.load_sprite("player_walk1", "sprites\\Player\\walk1.png", HERO_SCALE)
         rm.load_sprite("player_walk2", "sprites\\Player\\wal2.png", HERO_SCALE)
@@ -1359,7 +1443,6 @@ class BloodLostGame:
         # Load Dracula sprites (idle and attack)
         self.dracula_sprites = {}
         try:
-            # Load the two Dracula sprites from the uploaded images
             idle_sprite = rm.load_sprite(
                 "dracula_idle", "sprites\\Dracula\\dracula_idle.png", 3.0
             )
@@ -1370,7 +1453,6 @@ class BloodLostGame:
             self.dracula_sprites["attack"] = attack_sprite
             rm.load_sprite("fireball", "sprites\\Dracula\\foguinho.png", 1.5)
         except:
-            # Create placeholder sprites if files not found
             idle_placeholder = pygame.Surface((90, 120))
             idle_placeholder.fill((150, 0, 100))
             attack_placeholder = pygame.Surface((90, 120))
@@ -1477,6 +1559,12 @@ class BloodLostGame:
             self.boss_manager.set_fireball_sprite(
                 self.resource_manager.sprites["fireball"]
             )
+        
+        # DEBUG: Mostrar quantos backgrounds foram carregados
+        loaded_backgrounds = [key for key in rm.sprites.keys() if key.startswith("background_")]
+        print(f"\n=== Total de backgrounds carregados: {len(loaded_backgrounds)} ===")
+        for bg in sorted(loaded_backgrounds):
+            print(f"  • {bg}")
 
     def setup_timers(self):
         self.obstacle_timer = pygame.USEREVENT + 1
@@ -2077,10 +2165,14 @@ class BloodLostGame:
         current_lang_text = (
             "English" if self.language_manager.current_language == "en" else "Portugues"
         )
+        
+        # NOVO: Obter nome do modo de daltonismo atual
+        current_colorblind_text = self.language_manager.get_colorblind_mode_name()
 
         settings_options = [
             self.language_manager.get_text("volume").format(int(self.volume * 100)),
             f"{self.language_manager.get_text('language')}: {current_lang_text}",
+            self.language_manager.get_text("colorblind_mode").format(current_colorblind_text),  # NOVO
             self.language_manager.get_text("back"),
         ]
 
@@ -2093,9 +2185,8 @@ class BloodLostGame:
                 shadow_rect = shadow_surf.get_rect(center=(402, 162 + i * 40))
                 self.screen.blit(shadow_surf, shadow_rect)
 
-                # Setas direcionais apenas para volume (i == 0) e idioma (i == 1)
+                # Setas direcionais
                 if i == 0:  # Volume
-                    # Seta esquerda (diminuir) - só mostra se volume > 0
                     if self.volume > 0:
                         left_arrow = self.resource_manager.fonts["medium"].render(
                             " < ", False, YELLOW
@@ -2105,7 +2196,6 @@ class BloodLostGame:
                         )
                         self.screen.blit(left_arrow, left_arrow_rect)
 
-                    # Seta direita (aumentar) - só mostra se volume < 100%
                     if self.volume < 1.0:
                         right_arrow = self.resource_manager.fonts["medium"].render(
                             " > ", False, YELLOW
@@ -2115,30 +2205,45 @@ class BloodLostGame:
                         )
                         self.screen.blit(right_arrow, right_arrow_rect)
 
-                elif i == 1:  # Idioma - SETAS MAIS SEPARADAS
-                    # Seta esquerda - posição mais à esquerda
+                elif i == 1:  # Idioma
                     if self.language_manager.current_language == "en":
                         left_arrow = self.resource_manager.fonts["medium"].render(
                             " < ", False, YELLOW
                         )
                         left_arrow_rect = left_arrow.get_rect(
-                            center=(240, 160 + i * 40)  # Movido de 280 para 240
+                            center=(240, 160 + i * 40)
                         )
                         self.screen.blit(left_arrow, left_arrow_rect)
 
-                    # Seta direita - posição mais à direita
                     if self.language_manager.current_language == "pt":
                         right_arrow = self.resource_manager.fonts["medium"].render(
                             " > ", False, YELLOW
                         )
                         right_arrow_rect = right_arrow.get_rect(
-                            center=(560, 160 + i * 40)  # Movido de 520 para 560
+                            center=(560, 160 + i * 40)
                         )
                         self.screen.blit(right_arrow, right_arrow_rect)
+                
+                elif i == 2:  # NOVO: Modo Daltonismo
+                    # Sempre mostrar setas para ciclar entre os modos
+                    left_arrow = self.resource_manager.fonts["medium"].render(
+                        " < ", False, YELLOW
+                    )
+                    left_arrow_rect = left_arrow.get_rect(
+                        center=(180, 160 + i * 40)
+                    )
+                    self.screen.blit(left_arrow, left_arrow_rect)
+
+                    right_arrow = self.resource_manager.fonts["medium"].render(
+                        " > ", False, YELLOW
+                    )
+                    right_arrow_rect = right_arrow.get_rect(
+                        center=(620, 160 + i * 40)
+                    )
+                    self.screen.blit(right_arrow, right_arrow_rect)
 
             else:
-                # Cor especial para opções de reset
-                color = (255, 100, 100) if i in [2, 3] else GRAY
+                color = GRAY
 
             option_surf = self.resource_manager.fonts["medium"].render(
                 option, False, color
@@ -2237,7 +2342,6 @@ class BloodLostGame:
         menu_rect = menu_surf.get_rect(center=(400, 450))
         self.screen.blit(menu_surf, menu_rect)
         
-
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -2304,18 +2408,14 @@ class BloodLostGame:
     def handle_settings_events(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_UP, pygame.K_w]:
-                self.selected_setting = (
-                    self.selected_setting - 1
-                ) % 3  # Mudança aqui: 3 opções apenas
+                self.selected_setting = (self.selected_setting - 1) % 4  # MUDADO de 3 para 4
             elif event.key in [pygame.K_DOWN, pygame.K_s]:
-                self.selected_setting = (
-                    self.selected_setting + 1
-                ) % 3  # Mudança aqui: 3 opções apenas
+                self.selected_setting = (self.selected_setting + 1) % 4  # MUDADO de 3 para 4
             elif event.key == pygame.K_ESCAPE:
                 self.game_state = "menu"
             elif event.key == pygame.K_RETURN:
-                if self.selected_setting == 2:  # Opção "Voltar" (índice 2)
-                    self.game_state = "menu"  # Volta ao menu principal
+                if self.selected_setting == 3:  # MUDADO: Voltar agora é índice 3
+                    self.game_state = "menu"
             elif event.key in [pygame.K_LEFT, pygame.K_a]:
                 if self.selected_setting == 0:  # Volume
                     self.volume = max(0.0, self.volume - 0.1)
@@ -2325,6 +2425,11 @@ class BloodLostGame:
                         "pt" if self.language_manager.current_language == "en" else "en"
                     )
                     self.language_manager.set_language(new_lang)
+                elif self.selected_setting == 2:  # NOVO: Modo Daltonismo
+                    current_index = COLORBLIND_ORDER.index(self.language_manager.colorblind_mode)
+                    new_index = (current_index - 1) % len(COLORBLIND_ORDER)
+                    self.language_manager.set_colorblind_mode(COLORBLIND_ORDER[new_index])
+                    
             elif event.key in [pygame.K_RIGHT, pygame.K_d]:
                 if self.selected_setting == 0:  # Volume
                     self.volume = min(1.0, self.volume + 0.1)
@@ -2334,6 +2439,10 @@ class BloodLostGame:
                         "en" if self.language_manager.current_language == "pt" else "pt"
                     )
                     self.language_manager.set_language(new_lang)
+                elif self.selected_setting == 2:  # NOVO: Modo Daltonismo
+                    current_index = COLORBLIND_ORDER.index(self.language_manager.colorblind_mode)
+                    new_index = (current_index + 1) % len(COLORBLIND_ORDER)
+                    self.language_manager.set_colorblind_mode(COLORBLIND_ORDER[new_index])
 
     def handle_game_events(self, event):
         if event.type == self.obstacle_timer:
@@ -2617,19 +2726,28 @@ class BloodLostGame:
         self.main_menu_playing = True
 
     def get_current_background(self):
-        # Durante a batalha do boss, usar sempre o background do Dracula's Lair
+        # Obter o modo de daltonismo atual
+        colorblind_mode = self.language_manager.colorblind_mode
+        
+        # Durante a batalha do boss, usar sempre o background da fase 4
         if (
             self.boss_manager.is_boss_active()
             or self.boss_manager.boss_victory_timer > 0
         ):
-            background_name = "background_phase_4"  # Dracula's Lair
+            background_name = f"background_{colorblind_mode}_phase_4"
         else:
-            background_name = self.phase_manager.get_background_name()
+            current_phase = self.phase_manager.current_phase
+            background_name = f"background_{colorblind_mode}_phase_{current_phase}"
 
         if background_name in self.resource_manager.sprites:
             return self.resource_manager.sprites[background_name]
         else:
-            return self.resource_manager.sprites["background_phase_0"]
+            # Fallback para o background normal da fase 0
+            fallback = f"background_{colorblind_mode}_phase_0"
+            if fallback in self.resource_manager.sprites:
+                return self.resource_manager.sprites[fallback]
+            else:
+                return self.resource_manager.sprites.get("background_normal_phase_0")
 
     def update_game(self):
         # Se estiver na tela de loading
@@ -2771,10 +2889,7 @@ class BloodLostGame:
 
             else:
                 # Durante boss battle, usar background fixo do Dracula's Lair
-                current_bg = self.resource_manager.sprites.get(
-                    "background_phase_4",
-                    self.resource_manager.sprites["background_phase_0"],
-                )
+                current_bg = self.get_current_background()
                 # Limpar a tela completamente antes de desenhar o background fixo
                 self.screen.fill((0, 0, 0))  # Tela preta primeiro
                 self.screen.blit(current_bg, (0, 0))  # Background estático sem scroll
