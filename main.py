@@ -24,7 +24,6 @@ SCALE_FACTOR = 1.5
 HERO_SCALE = 2
 ENEMY_SCALE = 2
 
-# NOVO: Tipos de daltonismo disponíveis
 COLORBLIND_TYPES = {
     "normal": {"en": "Normal Vision", "pt": "Visão Normal"},
     "protanomalia": {"en": "Protanomalia", "pt": "Protanomalia"},
@@ -52,7 +51,7 @@ PHASE_NAMES = {
     ],
 }
 
-BOSS_TRIGGER = 50
+BOSS_TRIGGER = 100
 
 POINTS_JUMP_ENEMY = 50
 POINTS_KILL_ENEMY = 20
