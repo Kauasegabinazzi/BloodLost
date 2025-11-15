@@ -25,7 +25,7 @@ HERO_SCALE = 2
 ENEMY_SCALE = 2
 
 COLORBLIND_TYPES = {
-    "normal": {"en": "Normal Vision", "pt": "Visão Normal"},
+    "normal": {"en": "Normal Vision", "pt": "Visao Normal"},
     "protanomalia": {"en": "Protanomalia", "pt": "Protanomalia"},
     "deuteranomalia": {"en": "Deuteranomalia", "pt": "Deuteranomalia"},
     "tritanomalia": {"en": "Tritanomalia", "pt": "Tritanomalia"},
