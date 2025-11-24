@@ -51,7 +51,7 @@ PHASE_NAMES = {
     ],
 }
 
-BOSS_TRIGGER = 900
+BOSS_TRIGGER = 200
 
 POINTS_JUMP_ENEMY = 50
 POINTS_KILL_ENEMY = 20
@@ -2013,11 +2013,14 @@ class BloodLostGame:
         highscore_rect = highscore_surf.get_rect(center=(400, 160))
         self.screen.blit(highscore_surf, highscore_rect)
 
+        # Adicionar colorblind mode no menu principal
+        current_colorblind_text = self.language_manager.get_colorblind_mode_name()
 
         menu_options = [
             self.language_manager.get_text("start"),
-            self.language_manager.get_text("instructions"),  
+            self.language_manager.get_text("instructions"),
             self.language_manager.get_text("highscores"),
+            self.language_manager.get_text("colorblind_mode").format(current_colorblind_text),
             self.language_manager.get_text("settings"),
         ]
 
@@ -2025,21 +2028,39 @@ class BloodLostGame:
             color = YELLOW if i == self.selected_option else GRAY
 
             if i == self.selected_option:
-                
+                # Shadow effect
                 shadow_surf = self.resource_manager.fonts["medium"].render(
                     option, False, BLACK
                 )
                 shadow_rect = shadow_surf.get_rect(
                     center=(402, 212 + i * 40)
-                )  
+                )
                 self.screen.blit(shadow_surf, shadow_rect)
+                
+                # Adicionar setas para colorblind mode (opção 3)
+                if i == 3:
+                    left_arrow = self.resource_manager.fonts["medium"].render(
+                        " < ", False, YELLOW
+                    )
+                    left_arrow_rect = left_arrow.get_rect(
+                        center=(120, 210 + i * 40)
+                    )
+                    self.screen.blit(left_arrow, left_arrow_rect)
+
+                    right_arrow = self.resource_manager.fonts["medium"].render(
+                        " > ", False, YELLOW
+                    )
+                    right_arrow_rect = right_arrow.get_rect(
+                        center=(680, 210 + i * 40)
+                    )
+                    self.screen.blit(right_arrow, right_arrow_rect)
 
             option_surf = self.resource_manager.fonts["medium"].render(
                 option, False, color
             )
             option_rect = option_surf.get_rect(
                 center=(400, 210 + i * 40)
-            )  
+            )
             self.screen.blit(option_surf, option_rect)
 
     def draw_instructions(self):
@@ -2320,15 +2341,9 @@ class BloodLostGame:
             "English" if self.language_manager.current_language == "en" else "Portugues"
         )
 
-        
-        current_colorblind_text = self.language_manager.get_colorblind_mode_name()
-
         settings_options = [
             self.language_manager.get_text("volume").format(int(self.volume * 100)),
             f"{self.language_manager.get_text('language')}: {current_lang_text}",
-            self.language_manager.get_text("colorblind_mode").format(
-                current_colorblind_text
-            ),  
             self.language_manager.get_text("back"),
         ]
 
@@ -2341,8 +2356,7 @@ class BloodLostGame:
                 shadow_rect = shadow_surf.get_rect(center=(402, 162 + i * 40))
                 self.screen.blit(shadow_surf, shadow_rect)
 
-                
-                if i == 0:  
+                if i == 0:  # Volume
                     if self.volume > 0:
                         left_arrow = self.resource_manager.fonts["medium"].render(
                             " < ", False, YELLOW
@@ -2361,7 +2375,7 @@ class BloodLostGame:
                         )
                         self.screen.blit(right_arrow, right_arrow_rect)
 
-                elif i == 1:  
+                elif i == 1:  # Language
                     if self.language_manager.current_language == "en":
                         left_arrow = self.resource_manager.fonts["medium"].render(
                             " < ", False, YELLOW
@@ -2379,20 +2393,6 @@ class BloodLostGame:
                             center=(560, 160 + i * 40)
                         )
                         self.screen.blit(right_arrow, right_arrow_rect)
-
-                elif i == 2:  
-                    
-                    left_arrow = self.resource_manager.fonts["medium"].render(
-                        " < ", False, YELLOW
-                    )
-                    left_arrow_rect = left_arrow.get_rect(center=(180, 160 + i * 40))
-                    self.screen.blit(left_arrow, left_arrow_rect)
-
-                    right_arrow = self.resource_manager.fonts["medium"].render(
-                        " > ", False, YELLOW
-                    )
-                    right_arrow_rect = right_arrow.get_rect(center=(620, 160 + i * 40))
-                    self.screen.blit(right_arrow, right_arrow_rect)
 
             else:
                 color = GRAY
@@ -2539,21 +2539,43 @@ class BloodLostGame:
     def handle_menu_events(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_UP, pygame.K_w]:
-                self.selected_option = (
-                    self.selected_option - 1
-                ) % 4  
+                self.selected_option = (self.selected_option - 1) % 5
             elif event.key in [pygame.K_DOWN, pygame.K_s]:
-                self.selected_option = (
-                    self.selected_option + 1
-                ) % 4  
+                self.selected_option = (self.selected_option + 1) % 5
+            elif event.key in [pygame.K_LEFT, pygame.K_a]:
+                # Controle para colorblind mode (opção 3)
+                if self.selected_option == 3:
+                    current_index = COLORBLIND_ORDER.index(
+                        self.language_manager.colorblind_mode
+                    )
+                    new_index = (current_index - 1) % len(COLORBLIND_ORDER)
+                    self.language_manager.set_colorblind_mode(
+                        COLORBLIND_ORDER[new_index]
+                    )
+                    self.life_manager.update_colorblind_mode()
+                    self.update_dracula_sprites()
+            elif event.key in [pygame.K_RIGHT, pygame.K_d]:
+                # Controle para colorblind mode (opção 3)
+                if self.selected_option == 3:
+                    current_index = COLORBLIND_ORDER.index(
+                        self.language_manager.colorblind_mode
+                    )
+                    new_index = (current_index + 1) % len(COLORBLIND_ORDER)
+                    self.language_manager.set_colorblind_mode(
+                        COLORBLIND_ORDER[new_index]
+                    )
+                    self.life_manager.update_colorblind_mode()
+                    self.update_dracula_sprites()
             elif event.key == pygame.K_RETURN:
-                if self.selected_option == 0:  
+                if self.selected_option == 0:  # Start
                     self.start_game()
-                elif self.selected_option == 1:  
+                elif self.selected_option == 1:  # Instructions
                     self.game_state = "instructions"
-                elif self.selected_option == 2:  
+                elif self.selected_option == 2:  # Highscores
                     self.game_state = "highscores"
-                elif self.selected_option == 3:  
+                elif self.selected_option == 3:  # Colorblind mode - não faz nada no ENTER
+                    pass
+                elif self.selected_option == 4:  # Settings
                     self.game_state = "settings"
 
     def handle_highscore_events(self, event):
@@ -2564,53 +2586,33 @@ class BloodLostGame:
     def handle_settings_events(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_UP, pygame.K_w]:
-                self.selected_setting = (self.selected_setting - 1) % 4
+                self.selected_setting = (self.selected_setting - 1) % 3
             elif event.key in [pygame.K_DOWN, pygame.K_s]:
-                self.selected_setting = (self.selected_setting + 1) % 4
+                self.selected_setting = (self.selected_setting + 1) % 3
             elif event.key == pygame.K_ESCAPE:
                 self.game_state = "menu"
             elif event.key == pygame.K_RETURN:
-                if self.selected_setting == 3:  
+                if self.selected_setting == 2:  # Back
                     self.game_state = "menu"
             elif event.key in [pygame.K_LEFT, pygame.K_a]:
-                if self.selected_setting == 0:  
+                if self.selected_setting == 0:  # Volume
                     self.volume = max(0.0, self.volume - 0.1)
                     self.update_volume()
-                elif self.selected_setting == 1: 
+                elif self.selected_setting == 1:  # Language
                     new_lang = (
                         "pt" if self.language_manager.current_language == "en" else "en"
                     )
                     self.language_manager.set_language(new_lang)
-                elif self.selected_setting == 2:  
-                    current_index = COLORBLIND_ORDER.index(
-                        self.language_manager.colorblind_mode
-                    )
-                    new_index = (current_index - 1) % len(COLORBLIND_ORDER)
-                    self.language_manager.set_colorblind_mode(
-                        COLORBLIND_ORDER[new_index]
-                    )
-                    self.life_manager.update_colorblind_mode()  
-                    self.update_dracula_sprites() 
 
             elif event.key in [pygame.K_RIGHT, pygame.K_d]:
-                if self.selected_setting == 0:  
+                if self.selected_setting == 0:  # Volume
                     self.volume = min(1.0, self.volume + 0.1)
                     self.update_volume()
-                elif self.selected_setting == 1:  
+                elif self.selected_setting == 1:  # Language
                     new_lang = (
                         "en" if self.language_manager.current_language == "pt" else "pt"
                     )
                     self.language_manager.set_language(new_lang)
-                elif self.selected_setting == 2:  
-                    current_index = COLORBLIND_ORDER.index(
-                        self.language_manager.colorblind_mode
-                    )
-                    new_index = (current_index + 1) % len(COLORBLIND_ORDER)
-                    self.language_manager.set_colorblind_mode(
-                        COLORBLIND_ORDER[new_index]
-                    )
-                    self.life_manager.update_colorblind_mode()  
-                    self.update_dracula_sprites() 
 
     def handle_game_events(self, event):
         if event.type == self.obstacle_timer:
