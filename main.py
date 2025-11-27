@@ -33,7 +33,7 @@ COLORBLIND_TYPES = {
 
 COLORBLIND_ORDER = ["normal", "protanomalia", "deuteranomalia", "tritanomalia"]
 
-PHASE_THRESHOLDS = [0, 200, 400, 600, 900]
+PHASE_THRESHOLDS = [0, 200, 400, 600, 800]
 PHASE_NAMES = {
     "en": [
         "Castle Entrance",
@@ -81,7 +81,7 @@ TEXTS = {
         "shoot_info": "NEW: Press X to SHOOT magic projectiles, Z for WHIP attacks!",
         "whip_info": "Whip has long range and destroys enemies instantly!",
         "hall_of_fame": "HALL OF FAME",
-        "best_score_display": "BEST SCORE: {} seconds",
+        "best_score_display": "BEST SCORE: {} ",
         "boss_defeated": "Boss Defeated: {}",
         "enemies_whipped": "Enemies Whipped: {}",
         "dracula_boss": "Dracula - DEFEATED",
@@ -174,11 +174,11 @@ TEXTS = {
         "shoot_info": "NOVO: Aperte X para ATIRAR projeteis magicos, Z para atacar com CHICOTE!",
         "whip_info": "O chicote tem longo alcance e destroi inimigos instantaneamente!",
         "hall_of_fame": "HALL DA FAMA",
-        "best_score_display": "MELHOR PONTUACAO: {} segundos",
+        "best_score_display": "PONTUACAO : {} ",
         "boss_defeated": "Chefe Derrotado: {}",
         "enemies_whipped": "Inimigos Chicoteados: {}",
         "dracula_boss": "Dracula - DERROTADO",
-        "dracula_boss_not": "Dracula - Não enfrentado",
+        "dracula_boss_not": "Dracula - Nao enfrentado",
         "rank": "Rank: {}",
         "no_records": "Ainda nao ha recordes!",
         "press_back": "Aperte ESC ou ENTER para voltar",
@@ -1274,7 +1274,7 @@ class BloodLostGame:
         pygame.init()
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("BloodLost - Dracula Boss Battle")
+        pygame.display.set_caption("BloodLost - Dracula Battle")
         self.clock = pygame.time.Clock()
 
         self.language_manager = LanguageManager()
@@ -1289,10 +1289,8 @@ class BloodLostGame:
         self.player_animation_state = PlayerAnimationState()
         self.player_animation_state.victory_auto_return = 300
 
-        # Adicionar flag para verificar se é a primeira vez
         self.first_time_setup = self.check_first_time()
         
-        # Estado inicial - se for primeira vez, vai para colorblind_setup
         self.game_state = "colorblind_setup" if self.first_time_setup else "menu"
         self.game_active = False
         self.victory_triggered = False
@@ -1323,8 +1321,8 @@ class BloodLostGame:
 
         self.selected_option = 0
         self.selected_setting = 0
-        self.selected_colorblind = 0  # Índice para seleção de colorblind mode
-        self.volume = 0.7
+        self.selected_colorblind = 0  
+        self.volume = 0.4
 
         self.obstacle_list = []
 
@@ -1346,14 +1344,12 @@ class BloodLostGame:
             if os.path.exists("language_settings.json"):
                 with open("language_settings.json", "r") as f:
                     data = json.load(f)
-                    # Se já existe o arquivo e tem o colorblind_mode configurado, não é primeira vez
                     return "colorblind_mode" not in data or data.get("first_setup_done") != True
-            return True  # Arquivo não existe, é primeira vez
+            return True 
         except:
             return True
 
     def mark_setup_complete(self):
-        """Marca que o setup inicial foi completado"""
         try:
             data = {
                 "language": self.language_manager.current_language,
@@ -1366,16 +1362,14 @@ class BloodLostGame:
             pass
     
     def draw_colorblind_setup(self):
-        """Tela inicial de configuração do modo de cor"""
+
         self.screen.blit(self.resource_manager.sprites["menu_bg"], (0, 0))
         
-        # Overlay escuro
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         overlay.set_alpha(200)
         overlay.fill((0, 0, 0))
         self.screen.blit(overlay, (0, 0))
         
-        # Título
         title_text = "CONFIGURACAO INICIAL" if self.language_manager.current_language == "pt" else "INITIAL SETUP"
         title_surf = self.resource_manager.fonts["large"].render(
             title_text, False, RED
@@ -1383,7 +1377,6 @@ class BloodLostGame:
         title_rect = title_surf.get_rect(center=(400, 80))
         self.screen.blit(title_surf, title_rect)
         
-        # Subtítulo
         subtitle_text = (
             "Selecione o modo de cor para melhor experiencia:"
             if self.language_manager.current_language == "pt"
@@ -1395,7 +1388,6 @@ class BloodLostGame:
         subtitle_rect = subtitle_surf.get_rect(center=(400, 140))
         self.screen.blit(subtitle_surf, subtitle_rect)
         
-        # Opções de colorblind mode
         y_start = 200
         for i, mode in enumerate(COLORBLIND_ORDER):
             mode_name = COLORBLIND_TYPES[mode][self.language_manager.current_language]
@@ -1403,14 +1395,13 @@ class BloodLostGame:
             color = YELLOW if i == self.selected_colorblind else GRAY
             
             if i == self.selected_colorblind:
-                # Sombra
+
                 shadow_surf = self.resource_manager.fonts["medium"].render(
                     mode_name, False, BLACK
                 )
                 shadow_rect = shadow_surf.get_rect(center=(402, y_start + i * 60 + 2))
                 self.screen.blit(shadow_surf, shadow_rect)
                 
-                # Indicador visual de seleção
                 indicator = ">>> " + mode_name + " <<<"
                 option_surf = self.resource_manager.fonts["medium"].render(
                     indicator, False, color
@@ -1423,7 +1414,6 @@ class BloodLostGame:
             option_rect = option_surf.get_rect(center=(400, y_start + i * 60))
             self.screen.blit(option_surf, option_rect)
             
-            # Descrição de cada modo (opcional)
             if i == self.selected_colorblind:
                 descriptions = {
                     "normal": {
@@ -1451,7 +1441,6 @@ class BloodLostGame:
                 desc_rect = desc_surf.get_rect(center=(400, y_start + i * 60 + 30))
                 self.screen.blit(desc_surf, desc_rect)
         
-        # Instruções
         instructions_text = (
             "Use SETAS para navegar, ENTER para confirmar"
             if self.language_manager.current_language == "pt"
@@ -1463,7 +1452,6 @@ class BloodLostGame:
         instructions_rect = instructions_surf.get_rect(center=(400, 520))
         self.screen.blit(instructions_surf, instructions_rect)
         
-        # Preview visual (opcional - mostra uma prévia com o modo selecionado)
         preview_text = (
             "Modo atual: {}".format(COLORBLIND_TYPES[COLORBLIND_ORDER[self.selected_colorblind]][self.language_manager.current_language])
             if self.language_manager.current_language == "pt"
@@ -1476,33 +1464,32 @@ class BloodLostGame:
         self.screen.blit(preview_surf, preview_rect)
     
     def handle_colorblind_setup_events(self, event):
-        """Gerencia eventos da tela de setup de colorblind mode"""
+
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_UP, pygame.K_w]:
                 self.selected_colorblind = (self.selected_colorblind - 1) % len(COLORBLIND_ORDER)
-                # Atualiza preview em tempo real
+
                 self.language_manager.set_colorblind_mode(COLORBLIND_ORDER[self.selected_colorblind])
                 self.life_manager.update_colorblind_mode()
                 self.update_dracula_sprites()
                 
             elif event.key in [pygame.K_DOWN, pygame.K_s]:
                 self.selected_colorblind = (self.selected_colorblind + 1) % len(COLORBLIND_ORDER)
-                # Atualiza preview em tempo real
+
                 self.language_manager.set_colorblind_mode(COLORBLIND_ORDER[self.selected_colorblind])
                 self.life_manager.update_colorblind_mode()
                 self.update_dracula_sprites()
                 
             elif event.key == pygame.K_RETURN:
-                # Confirma a seleção
+
                 selected_mode = COLORBLIND_ORDER[self.selected_colorblind]
                 self.language_manager.set_colorblind_mode(selected_mode)
                 self.life_manager.update_colorblind_mode()
                 self.update_dracula_sprites()
                 
-                # Marca que o setup foi completado
+
                 self.mark_setup_complete()
                 
-                # Vai para o menu principal
                 self.game_state = "menu"
                 self.first_time_setup = False
             
@@ -2183,7 +2170,6 @@ class BloodLostGame:
         highscore_rect = highscore_surf.get_rect(center=(400, 160))
         self.screen.blit(highscore_surf, highscore_rect)
 
-        # Adicionar colorblind mode no menu principal
         current_colorblind_text = self.language_manager.get_colorblind_mode_name()
 
         menu_options = [
@@ -2198,7 +2184,7 @@ class BloodLostGame:
             color = YELLOW if i == self.selected_option else GRAY
 
             if i == self.selected_option:
-                # Shadow effect
+
                 shadow_surf = self.resource_manager.fonts["medium"].render(
                     option, False, BLACK
                 )
@@ -2207,7 +2193,6 @@ class BloodLostGame:
                 )
                 self.screen.blit(shadow_surf, shadow_rect)
                 
-                # Adicionar setas para colorblind mode (opção 3)
                 if i == 3:
                     left_arrow = self.resource_manager.fonts["medium"].render(
                         " < ", False, YELLOW
