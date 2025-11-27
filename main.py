@@ -51,7 +51,7 @@ PHASE_NAMES = {
     ],
 }
 
-BOSS_TRIGGER = 900
+BOSS_TRIGGER = 800
 
 POINTS_JUMP_ENEMY = 50
 POINTS_KILL_ENEMY = 20
@@ -3124,6 +3124,7 @@ class BloodLostGame:
 
             
             if boss_status == "boss_complete":
+                self.highscore_manager.update_if_record(self.score)
                 self.game_state = "victory"
                 self.victory_triggered = True
                 self.boss_manager.current_boss = None
@@ -3145,6 +3146,7 @@ class BloodLostGame:
 
             if boss_status == "boss_defeated":
                 self.score += POINTS_BOSS_DEFEAT
+                self.highscore_manager.update_if_record(self.score)
                 self.game_state = "victory"
                 self.stop_all_music()
 
